@@ -1,4 +1,4 @@
-function Button({ children, onClick, type, color= "sky" }) {
+function Button({ children, onClick, type, color= "sky", text="sm" }) {
   const variants = {
     sky: "bg-sky-600 hover:bg-sky-700",
     primary: "bg-neutral-900 hover:bg-neutral-800",
@@ -8,7 +8,7 @@ function Button({ children, onClick, type, color= "sky" }) {
   return (
     <button
       type={type}
-      className={`flex gap-2 text-sm text-neutral-50  rounded-xl  px-3 py-1 ${variants[color]}  cursor-pointer`}
+      className={`flex gap-2 text-${text} text-neutral-50  rounded-xl  px-3 py-1 ${variants[color]}  cursor-pointer`}
       onClick={onClick}
     >
       {children}

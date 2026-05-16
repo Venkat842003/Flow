@@ -18,7 +18,6 @@ function Signin() {
       email,
       password,
     });
-    console.log(data);
 
     if (error) {
       setError(error.message);
@@ -28,8 +27,6 @@ function Signin() {
       navigate("/admin");
     }
   }
-
-  
 
   if (user) return <Navigate to="/admin/issues" />;
 

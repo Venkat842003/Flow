@@ -20,14 +20,23 @@ function Troubleshooter() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!currentStep) return;
+
+    const flowState = {
+      history,
+      currentStep,
+    };
+
+    localStorage.setItem("flow-state", JSON.stringify(flowState));
+  }, [currentStep, history]);
+
+  useEffect(() => {
     async function fetchSteps() {
       const steps = await getSteps(id);
       const issue = await getIssueById(id);
-      console.log(issue);
+
       setSteps(steps);
       setIssue(issue);
-
-      setHistory([]);
 
       const resumeStepId = location.state?.stepId;
 
@@ -38,6 +47,23 @@ function Troubleshooter() {
         if (resumeStep) {
           setCurrentStep(resumeStep);
           return;
+        }
+      }
+
+      const savedState = localStorage.getItem("flow-state");
+      if (savedState) {
+        const parsedState = JSON.parse(savedState);
+
+        if (parsedState) {
+          setHistory(parsedState.history);
+
+          const restoredStep = steps.find(
+            (s) => s.id === parsedState.currentStep.id,
+          );
+          if (restoredStep) {
+            setCurrentStep(restoredStep);
+            return;
+          }
         }
       }
 
@@ -96,11 +122,28 @@ function Troubleshooter() {
     });
   }
 
+  function handleRestart() {
+    const confirmed = window.confirm(
+      "Are you sure you want to restart the troubleshooting flow? Your progress and history will be cleared.",
+    );
+    if (confirmed) {
+      localStorage.removeItem("current-step");
+      localStorage.removeItem("flow-history");
+
+      setHistory([]);
+      setPreviousIssue(null);
+
+      const firstStep = steps.find((step) => step.is_start);
+
+      setCurrentStep(firstStep);
+    }
+  }
+
   if (!currentStep) return <div>Loading...</div>;
 
   return (
     <div className=" max-w-9/10 m-auto my-5 p-4">
-      <div className="flex justify-center items-center relative mb-5 ">
+      <div className="flex justify-center items-center relative mb-5 gap-3">
         <button
           className="absolute text-neutral-300 border-b border-neutral-400 cursor-pointer  left-0"
           onClick={() => navigate("/")}
@@ -109,6 +152,7 @@ function Troubleshooter() {
         </button>
 
         <h1 className="text-2xl font-bold ">Issue : {issue.description}</h1>
+        <Button onClick={handleRestart}>Restart</Button>
         <div />
       </div>
       <div className="border-b border-neutral-600 p-2 mb-5">
@@ -119,26 +163,50 @@ function Troubleshooter() {
         />
       </div>
       <div className="flex flex-col gap-6 items-center ">
-        <div className="flex gap-4 justify-center ">
+        <div className="flex gap-4 justify-between w-full items-center mb-5">
           {previousIssue && (
             <Button onClick={handleJumpToPreviousIssue}>
               Bact to Previous Issue
             </Button>
           )}
-          {history.length > 0 && (
-            <Button onClick={handlePrevious}>Previous</Button>
-          )}
-          <h1>{currentStep.instruction}</h1>
-          {currentStep.is_question ? (
-            <div className="flex gap-4">
-              <Button onClick={() => handleAnswer("yes")}>Yes</Button>
-              <Button onClick={() => handleAnswer("no")}>No</Button>
-            </div>
-          ) : (
-            <Button onClick={handleNextStep}>Next</Button>
-          )}
+          <div className="w-28">
+            {history.length > 0 &&
+              (!currentStep.is_start ? (
+                <Button onClick={handlePrevious} text="md">
+                  Previous
+                </Button>
+              ) : (
+                <div></div>
+              ))}
+          </div>
+          <div className="max-w-7xl rounded-lg bg-neutral-700 p-4 w-full flex justify-center">
+            <h1 className="text-xl ">{currentStep.instruction}</h1>
+          </div>
+
+          <div className="w-28">
+            {currentStep.is_question ? (
+              <div className="flex gap-4">
+                <Button onClick={() => handleAnswer("yes")} text="md">
+                  Yes
+                </Button>
+                <Button onClick={() => handleAnswer("no")} text="md">
+                  No
+                </Button>
+              </div>
+            ) : !currentStep.is_end ? (
+              <Button onClick={handleNextStep} text="md">
+                Next
+              </Button>
+            ) : (
+              <div></div>
+            )}
+          </div>
         </div>
-        <img className="w-full max-w-7xl object-contain  h-auto" src={currentStep.image_url} alt={currentStep.image_url} />
+        <img
+          className="w-full max-w-7xl object-contain  h-auto"
+          src={currentStep.image_url}
+          alt={currentStep.image_url}
+        />
       </div>
     </div>
   );
