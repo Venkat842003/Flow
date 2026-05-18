@@ -3,14 +3,14 @@ function Breadcrumbs({ history, onJump }) {
     <div className="flex gap-2 items-center">
       <p>Steps : </p>
       {history.map((step, index) => (
-        <div key={step.id}>
+        <div key={index}>
           <button
             className="relative group  w-8 h-8 text-sm font-md rounded-full bg-neutral-600 cursor-pointer hover:bg-sky-600 transition"
-            onClick={() => onJump(index)}
+            onClick={() => onJump(step, index)}
           >
             {index + 1}
-             <div
-            className="
+            <div
+              className="
       absolute
       top-12
       left-1/2
@@ -27,11 +27,11 @@ function Breadcrumbs({ history, onJump }) {
       w-64
       z-50
     "
-          >
-            {step.instruction}
-          </div>
+            >
+              {step.step.instruction}
+            </div>
           </button>
-         
+
           <span> &gt; </span>
         </div>
       ))}

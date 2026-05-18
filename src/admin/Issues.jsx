@@ -8,9 +8,9 @@ import useDebounce from "../hooks/useDebounce";
 
 function Issues() {
   const [issues, setIssues] = useState([]);
-  const [loading, setLoading] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const {searchIssue} = useOutletContext()
+  const { searchIssue } = useOutletContext();
 
   const navigate = useNavigate();
 

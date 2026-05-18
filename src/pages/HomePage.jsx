@@ -10,6 +10,10 @@ function HomePage() {
   const [data, setData] = useState([]);
   const navigate = useNavigate();
 
+  const savedState = localStorage.getItem("flow-state");
+  const parsedState = savedState ? JSON.parse(savedState) : null;
+  const activeFlow = parsedState ? parsedState.issueId : null;
+
   useEffect(() => {
     async function fetchIssues() {
       const issues = await getIssues();
@@ -19,18 +23,23 @@ function HomePage() {
   }, []);
 
   function handleStartFlow(issue_id) {
+    localStorage.removeItem("flow-state");
+    navigate(`/flow/${issue_id}`);
+  }
+  function handleContinue(issue_id) {
     navigate(`/flow/${issue_id}`);
   }
 
   const debouncedSearch = useDebounce(searchIssue);
   const filteredIssues = data.filter((issue) =>
     issue.description.toLowerCase().includes(debouncedSearch.toLowerCase()),
+
   );
 
   if (!data.length) return <div>Loading...</div>;
 
   if (filteredIssues.length < 1) {
-    return <h1 className=" text-center">No issues found !!</h1>;
+    return <h1 className=" text-center">No matching issues found.</h1>;
   }
 
   return (
@@ -41,7 +50,11 @@ function HomePage() {
           key={issue.id}
         >
           <h1>{issue.description}</h1>
-          <Button onClick={() => handleStartFlow(issue.id)}> Start</Button>
+          {activeFlow === issue.id ? (
+            <Button onClick={() => handleContinue(issue.id)}> Continue</Button>
+          ) : (
+            <Button onClick={() => handleStartFlow(issue.id)}> Start</Button>
+          )}
         </div>
       ))}
     </div>

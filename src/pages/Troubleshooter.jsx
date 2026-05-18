@@ -23,12 +23,14 @@ function Troubleshooter() {
     if (!currentStep) return;
 
     const flowState = {
+      issueId: id,
       history,
       currentStep,
+      previousIssue,
     };
 
     localStorage.setItem("flow-state", JSON.stringify(flowState));
-  }, [currentStep, history]);
+  }, [currentStep, history, previousIssue, id]);
 
   useEffect(() => {
     async function fetchSteps() {
@@ -39,13 +41,16 @@ function Troubleshooter() {
       setIssue(issue);
 
       const resumeStepId = location.state?.stepId;
+      const resumeHistory = location.state?.history;
+      const resumePreviousIssue = location.state?.previousIssue;
 
       if (resumeStepId) {
-        setPreviousIssue(null);
         const resumeStep = steps.find((s) => s.id === resumeStepId);
 
         if (resumeStep) {
           setCurrentStep(resumeStep);
+          setHistory(resumeHistory || []);
+          setPreviousIssue(resumePreviousIssue || null);
           return;
         }
       }
@@ -53,9 +58,11 @@ function Troubleshooter() {
       const savedState = localStorage.getItem("flow-state");
       if (savedState) {
         const parsedState = JSON.parse(savedState);
+        console.log("Parsed state from localStorage:", parsedState);
 
         if (parsedState) {
-          setHistory(parsedState.history);
+          setHistory(parsedState.history || []);
+          setPreviousIssue(parsedState.previousIssue || null);
 
           const restoredStep = steps.find(
             (s) => s.id === parsedState.currentStep.id,
@@ -81,44 +88,67 @@ function Troubleshooter() {
     if (history.length === 0) return;
 
     const prevStep = history[history.length - 1];
-    setHistory((prev) => prev.slice(0, -1));
 
-    setCurrentStep(prevStep);
+    navigate(`/flow/${prevStep.issueId}`, {
+      state: {
+        stepId: prevStep.step.id,
+        history: history.slice(0, -1),
+        previousIssue:
+          prevStep.issueId === previousIssue?.issueId ? null : previousIssue,
+      },
+    });
   }
 
   function handleNextStep() {
     const nextStep = getStepById(currentStep.next_step_id);
     if (!nextStep) return;
-    setHistory((prev) => [...prev, currentStep]);
+    setHistory((prev) => [...prev, { step: currentStep, issueId: id }]);
     setCurrentStep(nextStep);
   }
 
-  function handleJumpToStep(index) {
-    const selectedStep = history[index];
-    setCurrentStep(selectedStep);
-    setHistory((prev) => prev.slice(0, index));
+  function handleJumpToStep(step, index) {
+    const confirmed = window.confirm(
+      "Are you sure you want to jump to this step? Your progress after this step will be lost.",
+    );
+    if (!confirmed) return;
+
+    navigate(`/flow/${step.issueId}`, {
+      state: {
+        stepId: step.step.id,
+        history: history.slice(0, index),
+        previousIssue:
+          previousIssue?.issueId === step?.issueId ? null : previousIssue,
+      },
+    });
   }
 
   function handleAnswer(answer) {
     if (answer === "yes") {
       const nextStep = getStepById(currentStep.next_step_yes);
-      setHistory((prev) => [...prev, currentStep]);
+      setHistory((prev) => [...prev, { step: currentStep, issueId: id }]);
       setCurrentStep(nextStep);
     }
     if (answer === "no" && !currentStep.next_issue_id) {
       const nextStep = getStepById(currentStep.next_step_no);
-      setHistory((prev) => [...prev, currentStep]);
+      setHistory((prev) => [...prev, { step: currentStep, issueId: id }]);
       setCurrentStep(nextStep);
     }
 
     if (answer === "no" && currentStep.next_issue_id) {
-      setPreviousIssue({ issueId: id, step: currentStep });
+      setPreviousIssue({ issueId: id, step: currentStep, history: history });
+      setHistory((prev) => [...prev, { step: currentStep, issueId: id }]);
+
       navigate(`/flow/${currentStep.next_issue_id}`);
     }
   }
+
   function handleJumpToPreviousIssue() {
+    const confirmed = window.confirm(
+      "Are you sure you want to jump back to the previous issue? Your current progress will be lost.",
+    );
+    if (!confirmed) return;
     navigate(`/flow/${previousIssue.issueId}`, {
-      state: { stepId: previousIssue.step.id },
+      state: { stepId: previousIssue.step.id, history: previousIssue.history },
     });
   }
 
@@ -127,8 +157,7 @@ function Troubleshooter() {
       "Are you sure you want to restart the troubleshooting flow? Your progress and history will be cleared.",
     );
     if (confirmed) {
-      localStorage.removeItem("current-step");
-      localStorage.removeItem("flow-history");
+      localStorage.removeItem("flow-state");
 
       setHistory([]);
       setPreviousIssue(null);
@@ -137,6 +166,15 @@ function Troubleshooter() {
 
       setCurrentStep(firstStep);
     }
+  }
+
+  function handleEndFlow() {
+    const confirmed = window.confirm(
+      "Are you sure you want to end the troubleshooting flow? Your progress and history will be cleared.",
+    );
+    if (!confirmed) return;
+    localStorage.removeItem("flow-state");
+    navigate("/");
   }
 
   if (!currentStep) return <div>Loading...</div>;
@@ -151,9 +189,14 @@ function Troubleshooter() {
           ⬅ Back to issue list
         </button>
 
-        <h1 className="text-2xl font-bold ">Issue : {issue.description}</h1>
+        <h1 className="text-2xl font-bold ">Issue : {issue?.description}</h1>
         <Button onClick={handleRestart}>Restart</Button>
-        <div />
+        <Button onClick={handleEndFlow}>End Flow</Button>
+        {previousIssue && (
+          <Button onClick={handleJumpToPreviousIssue}>
+            Back to Previous Issue
+          </Button>
+        )}
       </div>
       <div className="border-b border-neutral-600 p-2 mb-5">
         <Breadcrumbs
@@ -164,20 +207,14 @@ function Troubleshooter() {
       </div>
       <div className="flex flex-col gap-6 items-center ">
         <div className="flex gap-4 justify-between w-full items-center mb-5">
-          {previousIssue && (
-            <Button onClick={handleJumpToPreviousIssue}>
-              Bact to Previous Issue
-            </Button>
-          )}
           <div className="w-28">
-            {history.length > 0 &&
-              (!currentStep.is_start ? (
-                <Button onClick={handlePrevious} text="md">
-                  Previous
-                </Button>
-              ) : (
-                <div></div>
-              ))}
+            {history.length > 0 ? (
+              <Button onClick={handlePrevious} text="md">
+                Previous
+              </Button>
+            ) : (
+              <div></div>
+            )}
           </div>
           <div className="max-w-7xl rounded-lg bg-neutral-700 p-4 w-full flex justify-center">
             <h1 className="text-xl ">{currentStep.instruction}</h1>

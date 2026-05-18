@@ -13,31 +13,33 @@ function StepsEditorPage() {
   const [steps, setSteps] = useState([]);
   const [issues, setIssues] = useState([]);
   const [issue, setIssue] = useState(null);
-  const [uploading, setUploading] = useState(false);
+  const [uploadingStepId, setUploadingStepId] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
 
   useEffect(() => {
-    async function fetchSteps() {
-      setLoading(true);
-      const data = await getSteps(id);
-      setSteps(data || []);
-      setLoading(false);
-    }
-    fetchSteps();
-  }, [id]);
+    if (steps.length === 0) return;
+    localStorage.setItem("step-editor-history", JSON.stringify(steps));
+  }, [steps]);
 
   useEffect(() => {
-    async function fetchIssues() {
+    async function fetchData() {
+      const savedHistory = localStorage.getItem("step-editor-history");
+      if (savedHistory) {
+        setSteps(JSON.parse(savedHistory));
+        return;
+      }
       setLoading(true);
-      const data = await getIssues();
-      const current = data.find((issue) => issue.id === id);
-      setIssues(data);
+      const stepsData = await getSteps(id);
+      setSteps(stepsData || []);
+      const issueData = await getIssues();
+      const current = issueData.find((issue) => issue.id === id);
+      setIssues(issueData);
       setIssue(current);
       setLoading(false);
     }
-    fetchIssues();
+    fetchData();
   }, [id]);
 
   /* Editing step */
@@ -175,7 +177,7 @@ function StepsEditorPage() {
 
   async function handleImageUpload(stepId, file) {
     if (!file) return;
-    setUploading(true);
+    setUploadingStepId(stepId);
 
     const step = steps.find((s) => s.id === stepId);
 
@@ -207,7 +209,7 @@ function StepsEditorPage() {
       .getPublicUrl(fileName);
 
     handleUpdate(stepId, { image_url: data.publicUrl });
-    setUploading(false);
+    setUploadingStepId(null);
   }
 
   if (loading) return <Loading />;
@@ -378,7 +380,11 @@ function StepsEditorPage() {
             </div>
             <div className=" flex flex-col gap-6 max-w-sm w-full items-center">
               <label className="bg-sky-600 px-4 py-2 rounded-xl cursor-pointer hover:bg-sky-500">
-                {uploading ? "Uploading..." : " Upload Image"}
+                {step.image_url
+                  ? uploadingStepId === step.id
+                    ? "Uploading..."
+                    : " Change Image"
+                  : "Add Image"}
                 <input
                   type="file"
                   accept="image/*"
@@ -386,6 +392,7 @@ function StepsEditorPage() {
                     handleImageUpload(step.id, e.target.files[0])
                   }
                   className="hidden"
+                  disabled={uploadingStepId === step.id}
                 />
               </label>
               {step.image_url && (
