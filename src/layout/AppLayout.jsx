@@ -29,8 +29,6 @@ function AppLayout() {
       listener.subscription.unsubscribe();
     };
   }, []);
-  if (authLoading) return <Loading />;
-  if (!user) return <Navigate to="/signin" />;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -40,7 +38,7 @@ function AppLayout() {
         user={user}
       />
       <main className="flex-1 bg-neutral-800 text-white items-center ">
-        <Outlet context={{ searchIssue, setSearchIssue, user }} />
+        <Outlet context={{ searchIssue, setSearchIssue, user, authLoading }} />
       </main>
       <Footer />
     </div>

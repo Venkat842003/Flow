@@ -1,10 +1,13 @@
 import { Navigate, Outlet, useOutletContext } from "react-router-dom";
 import SideBar from "../components/SideBar";
+import Loading from "../components/Loading";
 
 function AdminLayout() {
-  const { user } = useOutletContext();
+  const { user, authLoading } = useOutletContext();
 
   const context = useOutletContext();
+
+  if (authLoading) return <Loading />;
 
   if (!user) return <Navigate to="/signin" />;
 
@@ -14,7 +17,7 @@ function AdminLayout() {
         <SideBar />
 
         <main className="flex-1 text-white p-6">
-          <Outlet context={context}/>
+          <Outlet context={context} />
         </main>
       </div>
     </div>
