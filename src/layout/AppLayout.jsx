@@ -1,9 +1,8 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import Loading from "../components/Loading";
 
 function AppLayout() {
   const [searchIssue, setSearchIssue] = useState("");
