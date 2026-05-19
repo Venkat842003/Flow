@@ -40,8 +40,21 @@ function Issues() {
       console.error(error.message);
     } else {
       setIssues((prev) => prev.filter((issue) => issue.id !== id));
+      alert("Issue deleted succesfully");
     }
-    alert("Issue deleted succesfully");
+  }
+
+  const savedHistory = localStorage.getItem("step-editor-history");
+  const parsedHistory = savedHistory ? JSON.parse(savedHistory) : null;
+  const currentEditingIssue = parsedHistory ? parsedHistory.issueId : null;
+
+  function handleEditIssue(id) {
+    localStorage.removeItem("step-editor-history");
+    navigate(`/admin/issues/${id}/steps`);
+  }
+
+  function handleContinueEditing(id) {
+    navigate(`/admin/issues/${id}/steps`);
   }
 
   if (loading) return <Loading />;
@@ -57,9 +70,13 @@ function Issues() {
         >
           <h1>{issue.description} </h1>{" "}
           <div className=" flex gap-3">
-            <Button onClick={() => navigate(`/admin/issues/${issue.id}/steps`)}>
-              Edit
-            </Button>{" "}
+            {currentEditingIssue === issue.id ? (
+              <Button onClick={() => handleContinueEditing(issue.id)}   color="orange">
+                Continue Editing
+              </Button>
+            ) : (
+              <Button onClick={() => handleEditIssue(issue.id)}>Edit</Button>
+            )}
             <Button color="red" onClick={() => handleDeleteIssue(issue.id)}>
               Delete
             </Button>

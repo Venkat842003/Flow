@@ -1,7 +1,7 @@
-function Loading() {
+function Loading({ children = "Loading..." }) {
   return (
     <div className="flex justify-center items-center h-screen  text-white">
-      Loading...
+      {children}
     </div>
   );
 }

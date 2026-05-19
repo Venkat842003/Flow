@@ -20,23 +20,33 @@ function StepsEditorPage() {
 
   useEffect(() => {
     if (steps.length === 0) return;
-    localStorage.setItem("step-editor-history", JSON.stringify(steps));
-  }, [steps]);
+
+    const stepHistory = {
+      issueId: id,
+      steps,
+    };
+    localStorage.setItem("step-editor-history", JSON.stringify(stepHistory));
+  }, [steps, id]);
 
   useEffect(() => {
     async function fetchData() {
-      const savedHistory = localStorage.getItem("step-editor-history");
-      if (savedHistory) {
-        setSteps(JSON.parse(savedHistory));
-        return;
-      }
       setLoading(true);
-      const stepsData = await getSteps(id);
-      setSteps(stepsData || []);
+
       const issueData = await getIssues();
       const current = issueData.find((issue) => issue.id === id);
       setIssues(issueData);
       setIssue(current);
+
+      const savedHistory = localStorage.getItem("step-editor-history");
+      if (savedHistory) {
+        const parsedHistory = JSON.parse(savedHistory);
+        setSteps(parsedHistory.steps || []);
+        setLoading(false);
+        return;
+      }
+
+      const stepsData = await getSteps(id);
+      setSteps(stepsData || []);
       setLoading(false);
     }
     fetchData();
@@ -104,6 +114,7 @@ function StepsEditorPage() {
 
       const { error } = await supabase.from("steps").upsert(steps);
       if (error) throw error;
+      localStorage.removeItem("step-editor-history");
       navigate("/admin/issues");
       alert("Saved successfully");
     } catch (err) {
@@ -123,6 +134,7 @@ function StepsEditorPage() {
     const { error } = await supabase.from("steps").delete().eq("id", id);
     if (error) {
       console.error(error.message);
+      setLoading(false);
       return;
     }
 

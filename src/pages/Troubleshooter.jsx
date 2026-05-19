@@ -4,6 +4,7 @@ import getSteps from "../hooks/getSteps";
 import Button from "../components/Button";
 import Breadcrumbs from "../components/Breadcrumbs";
 import { getIssueById } from "../hooks/getIssueById";
+import Loading from "../components/Loading";
 
 function Troubleshooter() {
   const { id } = useParams();
@@ -12,6 +13,7 @@ function Troubleshooter() {
   const [steps, setSteps] = useState([]);
   const [issue, setIssue] = useState(null);
   const [history, setHistory] = useState([]);
+  const [transitioning, setTransitioning] = useState(false);
 
   const [currentStep, setCurrentStep] = useState(null);
 
@@ -51,6 +53,8 @@ function Troubleshooter() {
           setCurrentStep(resumeStep);
           setHistory(resumeHistory || []);
           setPreviousIssue(resumePreviousIssue || null);
+          setTransitioning(false);
+
           return;
         }
       }
@@ -58,7 +62,6 @@ function Troubleshooter() {
       const savedState = localStorage.getItem("flow-state");
       if (savedState) {
         const parsedState = JSON.parse(savedState);
-        console.log("Parsed state from localStorage:", parsedState);
 
         if (parsedState) {
           setHistory(parsedState.history || []);
@@ -76,6 +79,7 @@ function Troubleshooter() {
 
       const firstStep = steps.find((step) => step.is_start);
       setCurrentStep(firstStep);
+      setTransitioning(false);
     }
     fetchSteps();
   }, [id, location.state]);
@@ -84,10 +88,49 @@ function Troubleshooter() {
     return steps.find((s) => s.id === id);
   }
 
+  /*  const getStepById = useCallback(
+    (id) => {
+      return steps.find((s) => s.id === id);
+    },
+    [steps],
+  );
+ */
+  /*  function preloadImage(url) {
+      if (!url) return;
+      const img = new Image();
+      img.src = url;
+    } */
+
+  /*  useEffect(() => {
+    if (!currentStep) return;
+    
+
+    // preload next possible images
+    if (currentStep.next_step_id) {
+      const next = getStepById(currentStep.next_step_id);
+      preloadImage(next?.image_url);
+    }
+    if (currentStep.next_step_yes) {
+      const next = getStepById(currentStep.next_step_yes);
+      preloadImage(next?.image_url);
+    }
+    if (currentStep.next_step_no) {
+      const next = getStepById(currentStep.next_step_no);
+      preloadImage(next?.image_url);
+    }
+  }, [currentStep, getStepById]); */
+
   function handlePrevious() {
     if (history.length === 0) return;
 
     const prevStep = history[history.length - 1];
+
+    if (prevStep.issueId === id) {
+      setCurrentStep(prevStep.step);
+      setHistory((prev) => prev.slice(0, -1));
+      return;
+    }
+    setTransitioning(true);
 
     navigate(`/flow/${prevStep.issueId}`, {
       state: {
@@ -111,6 +154,13 @@ function Troubleshooter() {
       "Are you sure you want to jump to this step? Your progress after this step will be lost.",
     );
     if (!confirmed) return;
+
+    if (step.issueId === id) {
+      setCurrentStep(step.step);
+      setHistory(history.slice(0, index));
+      return;
+    }
+    setTransitioning(true);
 
     navigate(`/flow/${step.issueId}`, {
       state: {
@@ -137,6 +187,7 @@ function Troubleshooter() {
     if (answer === "no" && currentStep.next_issue_id) {
       setPreviousIssue({ issueId: id, step: currentStep, history: history });
       setHistory((prev) => [...prev, { step: currentStep, issueId: id }]);
+      setTransitioning(true);
 
       navigate(`/flow/${currentStep.next_issue_id}`);
     }
@@ -147,6 +198,8 @@ function Troubleshooter() {
       "Are you sure you want to jump back to the previous issue? Your current progress will be lost.",
     );
     if (!confirmed) return;
+    setTransitioning(true);
+
     navigate(`/flow/${previousIssue.issueId}`, {
       state: { stepId: previousIssue.step.id, history: previousIssue.history },
     });
@@ -177,7 +230,9 @@ function Troubleshooter() {
     navigate("/");
   }
 
-  if (!currentStep) return <div>Loading...</div>;
+  if (!currentStep) return <Loading />;
+
+  if (transitioning) return <Loading>Switching issue...</Loading>;
 
   return (
     <div className=" max-w-9/10 m-auto my-5 p-4">
@@ -198,7 +253,7 @@ function Troubleshooter() {
           </Button>
         )}
       </div>
-      <div className="border-b border-neutral-600 p-2 mb-5">
+      <div className="border-b border-neutral-600 p-2 mb-5 ">
         <Breadcrumbs
           history={history}
           currentStep={currentStep}
@@ -220,9 +275,9 @@ function Troubleshooter() {
             <h1 className="text-xl ">{currentStep.instruction}</h1>
           </div>
 
-          <div className="w-28">
+          <div className="w-28 ">
             {currentStep.is_question ? (
-              <div className="flex gap-4">
+              <div className="flex gap-1 w-full">
                 <Button onClick={() => handleAnswer("yes")} text="md">
                   Yes
                 </Button>

@@ -35,7 +35,7 @@ function Breadcrumbs({ history, onJump }) {
           <span> &gt; </span>
         </div>
       ))}
-      <span className="text-blue-300 "> Current step</span>
+      <span className="text-blue-300 h-8 flex items-center"> Current step</span>
     </div>
   );
 }

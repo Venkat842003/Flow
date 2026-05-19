@@ -3,6 +3,7 @@ import getIssues from "../hooks/getIssues";
 import Button from "../components/Button";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import useDebounce from "../hooks/useDebounce";
+import Loading from "../components/Loading";
 
 function HomePage() {
   const { searchIssue } = useOutletContext();
@@ -33,10 +34,9 @@ function HomePage() {
   const debouncedSearch = useDebounce(searchIssue);
   const filteredIssues = data.filter((issue) =>
     issue.description.toLowerCase().includes(debouncedSearch.toLowerCase()),
-
   );
 
-  if (!data.length) return <div>Loading...</div>;
+  if (!data.length) return <Loading />
 
   if (filteredIssues.length < 1) {
     return <h1 className=" text-center">No matching issues found.</h1>;
@@ -51,7 +51,10 @@ function HomePage() {
         >
           <h1>{issue.description}</h1>
           {activeFlow === issue.id ? (
-            <Button onClick={() => handleContinue(issue.id)}> Continue</Button>
+            <Button onClick={() => handleContinue(issue.id)} color="orange">
+              {" "}
+              Continue
+            </Button>
           ) : (
             <Button onClick={() => handleStartFlow(issue.id)}> Start</Button>
           )}

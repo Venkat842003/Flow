@@ -3,6 +3,7 @@ function Button({ children, onClick, type, color= "sky", text="sm" }) {
     sky: "bg-sky-600 hover:bg-sky-700",
     primary: "bg-neutral-900 hover:bg-neutral-800",
     red: "bg-red-600 hover:bg-red-700",
+    orange: "bg-orange-500 hover:bg-orange-600",
     form: "bg-emerald-600 hover:bg-emerald-700",
   };
   return (
