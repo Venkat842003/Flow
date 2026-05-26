@@ -8,6 +8,7 @@ import CreateIssue from "./admin/CreateIssue";
 import StepsEditorPage from "./admin/StepsEditorPage";
 import Signin from "./pages/Signin";
 import Users from "./admin/Users";
+import FlowEditor from "./admin/FlowEditor";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="issues" element={<Issues />} />
           <Route path="create-issue" element={<CreateIssue />} />
           <Route path="issues/:id/steps" element={<StepsEditorPage />} />
+          <Route path="issues/:id/floweditor" element={<FlowEditor />} />
           <Route path="users" element={<Users />} />
         </Route>
       </Route>

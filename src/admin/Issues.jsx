@@ -5,10 +5,12 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 import Loading from "../components/Loading";
 import { supabase } from "../lib/supabase";
 import useDebounce from "../hooks/useDebounce";
+import getSteps from "../hooks/getSteps";
 
 function Issues() {
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [steps, setSteps] = useState([]);
 
   const { searchIssue } = useOutletContext();
 
@@ -19,6 +21,14 @@ function Issues() {
       setLoading(true);
       const data = await getIssues();
       setIssues(data);
+      const savedHistory = localStorage.getItem("step-editor-history");
+      const parsedHistory = savedHistory ? JSON.parse(savedHistory) : null;
+      if (parsedHistory) {
+        const issueId = parsedHistory.issueId;
+        const stepsData = await getSteps(issueId);
+        setSteps(stepsData);
+      }
+
       setLoading(false);
     }
     fetchIssues();
@@ -46,7 +56,13 @@ function Issues() {
 
   const savedHistory = localStorage.getItem("step-editor-history");
   const parsedHistory = savedHistory ? JSON.parse(savedHistory) : null;
+
   const currentEditingIssue = parsedHistory ? parsedHistory.issueId : null;
+
+  const hasChanges =
+    parsedHistory &&
+    steps.length > 0 &&
+    JSON.stringify(parsedHistory.steps) !== JSON.stringify(steps);
 
   function handleEditIssue(id) {
     localStorage.removeItem("step-editor-history");
@@ -55,6 +71,14 @@ function Issues() {
 
   function handleContinueEditing(id) {
     navigate(`/admin/issues/${id}/steps`);
+  }
+  function handleFlowEdit(id) {
+    localStorage.removeItem("step-editor-history");
+    navigate(`/admin/issues/${id}/floweditor`);
+  }
+
+  function handleContinueFlowEditing(id) {
+    navigate(`/admin/issues/${id}/floweditor`);
   }
 
   if (loading) return <Loading />;
@@ -70,12 +94,27 @@ function Issues() {
         >
           <h1>{issue.description} </h1>{" "}
           <div className=" flex gap-3">
-            {currentEditingIssue === issue.id ? (
-              <Button onClick={() => handleContinueEditing(issue.id)}   color="orange">
+            {currentEditingIssue === issue.id && hasChanges ? (
+              <Button
+                onClick={() => handleContinueEditing(issue.id)}
+                color="orange"
+              >
                 Continue Editing
               </Button>
             ) : (
               <Button onClick={() => handleEditIssue(issue.id)}>Edit</Button>
+            )}
+            {currentEditingIssue === issue.id && hasChanges ? (
+              <Button
+                onClick={() => handleContinueFlowEditing(issue.id)}
+                color="form"
+              >
+                Continue Flow Editing
+              </Button>
+            ) : (
+              <Button onClick={() => handleFlowEdit(issue.id)} color="form">
+                Flow-Edit
+              </Button>
             )}
             <Button color="red" onClick={() => handleDeleteIssue(issue.id)}>
               Delete

@@ -111,6 +111,7 @@ function StepsEditorPage() {
     try {
       setSaveLoading(true);
       validateSteps(steps);
+      console.log("Saving steps: ", steps);
 
       const { error } = await supabase.from("steps").upsert(steps);
       if (error) throw error;
@@ -119,7 +120,7 @@ function StepsEditorPage() {
       alert("Saved successfully");
     } catch (err) {
       console.error(err);
-      alert(err.message || "Something went wrong");
+      alert("error: " + (err.message || "Something went wrong"));
     } finally {
       setSaveLoading(false);
     }
@@ -138,7 +139,13 @@ function StepsEditorPage() {
       return;
     }
 
-    setSteps((prev) => prev.filter((s) => s.id !== id));
+    const remaining = steps.filter((s) => s.id !== id);
+    setSteps(remaining);
+
+    // ✅ Clear localStorage immediately if no steps left
+    if (remaining.length === 0) {
+      localStorage.removeItem("step-editor-history");
+    }
     setLoading(false);
   }
 
@@ -293,7 +300,9 @@ function StepsEditorPage() {
                   <label>Next step:</label>
                   <select
                     onChange={(e) =>
-                      handleUpdate(step.id, { next_step_id: e.target.value })
+                      handleUpdate(step.id, {
+                        next_step_id: e.target.value || null,
+                      })
                     }
                     value={step.next_step_id || ""}
                     className="border border-neutral-600 rounded-sm pl-2 pr-6 py-2 mt-2 w-full bg-neutral-800"
@@ -319,7 +328,9 @@ function StepsEditorPage() {
                     <label>Next step if YES:</label>
                     <select
                       onChange={(e) =>
-                        handleUpdate(step.id, { next_step_yes: e.target.value })
+                        handleUpdate(step.id, {
+                          next_step_yes: e.target.value || null,
+                        })
                       }
                       value={step.next_step_yes || ""}
                       className="border border-neutral-600 rounded-sm pl-2 pr-6 py-2 mt-2  w-full bg-neutral-800"
@@ -342,7 +353,7 @@ function StepsEditorPage() {
                       <select
                         onChange={(e) =>
                           handleUpdate(step.id, {
-                            next_step_no: e.target.value,
+                            next_step_no: e.target.value || null,
                           })
                         }
                         value={step.next_step_no || ""}
@@ -368,7 +379,7 @@ function StepsEditorPage() {
                       <select
                         onChange={(e) =>
                           handleUpdate(step.id, {
-                            next_issue_id: e.target.value,
+                            next_issue_id: e.target.value || null,
                           })
                         }
                         value={step.next_issue_id || ""}
