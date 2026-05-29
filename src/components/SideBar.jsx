@@ -26,7 +26,7 @@ function SideBar() {
             }
             to="/admin/issues"
           >
-            {sidebarOpen ? "Issues" : <Bug />}
+            {sidebarOpen ? "Known Issues / Guides" : <Bug />}
           </NavLink>
           <NavLink
             className={({ isActive }) =>

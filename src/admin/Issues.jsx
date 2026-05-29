@@ -6,6 +6,7 @@ import Loading from "../components/Loading";
 import { supabase } from "../lib/supabase";
 import useDebounce from "../hooks/useDebounce";
 import getSteps from "../hooks/getSteps";
+import { Network, Pencil, Trash } from "lucide-react";
 
 function Issues() {
   const [issues, setIssues] = useState([]);
@@ -83,13 +84,13 @@ function Issues() {
 
   if (loading) return <Loading />;
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Issue list</h1>
+        <h1 className="text-3xl font-bold">Issue / Guide list</h1>
       </div>
       {filteredIssues.map((issue) => (
         <div
-          className="flex gap-3 justify-between border p-2 rounded-md border-neutral-600 max-w-7xl"
+          className="flex gap-3 justify-between border p-2 rounded-md border-neutral-600 max-w-7xl bg-neutral-900 items-center p-3"
           key={issue.id}
         >
           <h1>{issue.description} </h1>{" "}
@@ -102,22 +103,36 @@ function Issues() {
                 Continue Editing
               </Button>
             ) : (
-              <Button onClick={() => handleEditIssue(issue.id)}>Edit</Button>
+              <Button
+                color="primary"
+                hoverColor="hover:bg-sky-600"
+                onClick={() => handleEditIssue(issue.id)}
+              >
+                <Pencil size={16} /> Edit
+              </Button>
             )}
             {currentEditingIssue === issue.id && hasChanges ? (
               <Button
                 onClick={() => handleContinueFlowEditing(issue.id)}
-                color="form"
+                color="orange"
               >
                 Continue Flow Editing
               </Button>
             ) : (
-              <Button onClick={() => handleFlowEdit(issue.id)} color="form">
-                Flow-Edit
+              <Button
+                onClick={() => handleFlowEdit(issue.id)}
+                color="primary"
+                hoverColor="hover:bg-fuchsia-800"
+              >
+                <Network size={16} /> Flow-Edit
               </Button>
             )}
-            <Button color="red" onClick={() => handleDeleteIssue(issue.id)}>
-              Delete
+            <Button
+              color="primary"
+              hoverColor="hover:bg-red-600"
+              onClick={() => handleDeleteIssue(issue.id)}
+            >
+              <Trash size={16} />
             </Button>
           </div>
         </div>
