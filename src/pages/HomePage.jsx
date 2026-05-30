@@ -36,17 +36,17 @@ function HomePage() {
     issue.description.toLowerCase().includes(debouncedSearch.toLowerCase()),
   );
 
-  if (!data.length) return <Loading />
+  if (!data.length) return <Loading />;
 
   if (filteredIssues.length < 1) {
     return <h1 className=" text-center">No matching issues found.</h1>;
   }
 
   return (
-    <div className=" flex flex-col gap-6 p-6 border border-neutral-600 min-h-screen rounded-3xl max-w-7xl m-auto my-5">
-      {filteredIssues.map((issue) => (
+    <div className=" flex flex-col   border border-neutral-600 min-h-screen rounded-sm max-w-9/10 mx-auto  mt-10  mb-5">
+      {filteredIssues.map((issue, index) => (
         <div
-          className="flex gap-4 text-lg justify-between pb-3 border-b border-neutral-600 "
+          className={`flex gap-4 text-lg justify-between pb-3 border-b border-neutral-600  ${index % 2 === 0 ? "bg-neutral-800" : "bg-neutral-700"} items-center p-3 rounded-sm`}
           key={issue.id}
         >
           <h1>{issue.description}</h1>

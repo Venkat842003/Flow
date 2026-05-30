@@ -1,11 +1,19 @@
-function Button({ children, onClick, type, color= "sky", text="sm",  hoverColor }) {
+function Button({
+  children,
+  onClick,
+  type,
+  color = "sky",
+  text = "sm",
+  hoverColor,
+}) {
   const variants = {
     sky: "bg-sky-600 hover:bg-sky-700",
-    primary: `bg-neutral-900  border border-neutral-600`,
-    red: "bg-red-600 hover:bg-red-700",
-    orange: "bg-orange-500 hover:bg-orange-600",  
-    form: "bg-fuchsia-600 hover:bg-fuchsia-700", 
+    primary: "bg-neutral-600",
+    secondary: "bg-neutral-800  ",
 
+    red: "bg-red-600 hover:bg-red-700",
+    orange: "bg-orange-500 hover:bg-orange-600",
+    form: "bg-fuchsia-600 hover:bg-fuchsia-700",
   };
   return (
     <button

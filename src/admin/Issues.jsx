@@ -7,11 +7,13 @@ import { supabase } from "../lib/supabase";
 import useDebounce from "../hooks/useDebounce";
 import getSteps from "../hooks/getSteps";
 import { Network, Pencil, Trash } from "lucide-react";
+import { SlOptionsVertical } from "react-icons/sl";
 
 function Issues() {
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(false);
   const [steps, setSteps] = useState([]);
+  const [optionsOpen, setOptionsOpen] = useState(null);
 
   const { searchIssue } = useOutletContext();
 
@@ -88,55 +90,72 @@ function Issues() {
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Issue / Guide list</h1>
       </div>
-      {filteredIssues.map((issue) => (
-        <div
-          className="flex gap-3 justify-between border p-2 rounded-md border-neutral-600 max-w-7xl bg-neutral-900 items-center p-3"
-          key={issue.id}
-        >
-          <h1>{issue.description} </h1>{" "}
-          <div className=" flex gap-3">
-            {currentEditingIssue === issue.id && hasChanges ? (
-              <Button
-                onClick={() => handleContinueEditing(issue.id)}
-                color="orange"
+      <div className="flex flex-col  border border-neutral-600 min-h-screen rounded-sm ">
+        {filteredIssues.map((issue, index) => (
+          <div
+            className={`flex gap-4 text-lg justify-between pb-3 border-b border-neutral-600  ${index % 2 === 0 ? "bg-neutral-800" : "bg-neutral-700"} items-center p-3 rounded-sm relative`}
+            key={issue.id}
+          >
+            <h1>{issue.description} </h1>{" "}
+            <div className="flex items-center gap-3 ">
+              {optionsOpen === issue.id && (
+                <div className=" flex gap-3 ">
+                  {currentEditingIssue === issue.id && hasChanges ? (
+                    <Button
+                      onClick={() => handleContinueEditing(issue.id)}
+                      color={index % 2 === 0 ? "primary" : "secondary"}
+                    >
+                      Continue Editing
+                    </Button>
+                  ) : (
+                    <Button
+                      color={index % 2 === 0 ? "primary" : "secondary"}
+                      hoverColor="hover:bg-sky-600"
+                      onClick={() => handleEditIssue(issue.id)}
+                    >
+                      <Pencil size={16} /> Edit
+                    </Button>
+                  )}
+                  {currentEditingIssue === issue.id && hasChanges ? (
+                    <Button
+                      color={index % 2 === 0 ? "primary" : "secondary"}
+                      onClick={() => handleContinueFlowEditing(issue.id)}
+                      color="orange"
+                    >
+                      Continue Flow Editing
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => handleFlowEdit(issue.id)}
+                      color={index % 2 === 0 ? "primary" : "secondary"}
+                      hoverColor="hover:bg-fuchsia-800"
+                    >
+                      <Network size={16} /> Flow-Edit
+                    </Button>
+                  )}
+                  <Button
+                    color={index % 2 === 0 ? "primary" : "secondary"}
+                    hoverColor="hover:bg-red-600"
+                    onClick={() => handleDeleteIssue(issue.id)}
+                  >
+                    <Trash size={16} />
+                  </Button>
+                </div>
+              )}
+              <button
+                className="cursor-pointer"
+                onClick={() =>
+                  setOptionsOpen((prev) =>
+                    prev ? (prev === issue.id ? null : issue.id) : issue.id,
+                  )
+                }
               >
-                Continue Editing
-              </Button>
-            ) : (
-              <Button
-                color="primary"
-                hoverColor="hover:bg-sky-600"
-                onClick={() => handleEditIssue(issue.id)}
-              >
-                <Pencil size={16} /> Edit
-              </Button>
-            )}
-            {currentEditingIssue === issue.id && hasChanges ? (
-              <Button
-                onClick={() => handleContinueFlowEditing(issue.id)}
-                color="orange"
-              >
-                Continue Flow Editing
-              </Button>
-            ) : (
-              <Button
-                onClick={() => handleFlowEdit(issue.id)}
-                color="primary"
-                hoverColor="hover:bg-fuchsia-800"
-              >
-                <Network size={16} /> Flow-Edit
-              </Button>
-            )}
-            <Button
-              color="primary"
-              hoverColor="hover:bg-red-600"
-              onClick={() => handleDeleteIssue(issue.id)}
-            >
-              <Trash size={16} />
-            </Button>
+                <SlOptionsVertical />
+              </button>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }

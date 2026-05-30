@@ -1,7 +1,8 @@
-import { CircleUserRound, LogOut, Search } from "lucide-react";
+import {  Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
-
+import { FaUserCircle } from "react-icons/fa";
+import { RiLogoutBoxFill } from "react-icons/ri";
 function Header({ searchIssue, setSearchIssue, user }) {
   const navigate = useNavigate();
 
@@ -19,7 +20,7 @@ function Header({ searchIssue, setSearchIssue, user }) {
   }
 
   return (
-    <header className="flex justify-between bg-slate-700 text-white items-center p-6">
+    <header className="flex justify-between bg-gray-700 text-white items-center px-6 py-4">
       <h1
         className="font-bold  text-4xl  cursor-pointer"
         onClick={() => navigate("/")}
@@ -31,19 +32,16 @@ function Header({ searchIssue, setSearchIssue, user }) {
         <input
           value={searchIssue}
           type="text"
-          className="border rounded-3xl border-neutral-400   w-[320px] pl-10 pr-4 py-2"
+          className="border rounded-3xl border-neutral-400    w-[320px] pl-10 pr-4 py-2 text-sm"
           placeholder="Search issues"
           onChange={(e) => setSearchIssue(e.target.value)}
         />
 
         <div className="text-xl font-bold cursor-pointer flex gap-4 items-center">
-          <CircleUserRound
-            size={42}
-            strokeWidth={1}
-            onClick={() => navigate("/signin")}
-          />
+          <FaUserCircle size={30} onClick={() => navigate("/signin")} />
           {user && (
-            <LogOut size={33} strokeWidth={1.5} onClick={handleLogout} />
+            
+            <RiLogoutBoxFill size={30} onClick={handleLogout} />
           )}
         </div>
       </div>
