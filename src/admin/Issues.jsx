@@ -6,7 +6,7 @@ import Loading from "../components/Loading";
 import { supabase } from "../lib/supabase";
 import useDebounce from "../hooks/useDebounce";
 import getSteps from "../hooks/getSteps";
-import { Network, Pencil, Trash } from "lucide-react";
+import { Network,  Trash } from "lucide-react";
 import { SlOptionsVertical } from "react-icons/sl";
 
 function Issues() {
@@ -67,14 +67,14 @@ function Issues() {
     steps.length > 0 &&
     JSON.stringify(parsedHistory.steps) !== JSON.stringify(steps);
 
-  function handleEditIssue(id) {
+ /*  function handleEditIssue(id) {
     localStorage.removeItem("step-editor-history");
     navigate(`/admin/issues/${id}/steps`);
   }
 
   function handleContinueEditing(id) {
     navigate(`/admin/issues/${id}/steps`);
-  }
+  } */
   function handleFlowEdit(id) {
     localStorage.removeItem("step-editor-history");
     navigate(`/admin/issues/${id}/floweditor`);
@@ -100,7 +100,7 @@ function Issues() {
             <div className="flex items-center gap-3 ">
               {optionsOpen === issue.id && (
                 <div className=" flex gap-3 ">
-                  {currentEditingIssue === issue.id && hasChanges ? (
+                 {/*  {currentEditingIssue === issue.id && hasChanges ? (
                     <Button
                       onClick={() => handleContinueEditing(issue.id)}
                       color={index % 2 === 0 ? "primary" : "secondary"}
@@ -115,7 +115,7 @@ function Issues() {
                     >
                       <Pencil size={16} /> Edit
                     </Button>
-                  )}
+                  )} */}
                   {currentEditingIssue === issue.id && hasChanges ? (
                     <Button
                       color={index % 2 === 0 ? "primary" : "secondary"}

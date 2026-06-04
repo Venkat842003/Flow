@@ -10,7 +10,7 @@ function StepDropdown({ step, steps, handleNextStepChange, type, value }) {
         <option value="" className="w-full">
           --Select Next Step--
         </option>
-        <option value={type}>Create next step</option>
+        <option className="" value={type}>Create next step +</option>
         {steps
           .filter((s) => s.id !== step.id)
           .map((s) => (

@@ -23,7 +23,7 @@ function CreateIssue() {
       console.error(error.message);
       return;
     }
-    navigate(`/admin/issues/${data.id}/steps`);
+    navigate(`/admin/issues/${data.id}/floweditor`);
   }
   return (
     <div className=" flex flex-col gap-5">

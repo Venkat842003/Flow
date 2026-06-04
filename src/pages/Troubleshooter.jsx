@@ -88,13 +88,6 @@ function Troubleshooter() {
     return steps.find((s) => s.id === id);
   }
 
-  /*  const getStepById = useCallback(
-    (id) => {
-      return steps.find((s) => s.id === id);
-    },
-    [steps],
-  );
- */
   /*  function preloadImage(url) {
       if (!url) return;
       const img = new Image();
@@ -143,10 +136,12 @@ function Troubleshooter() {
   }
 
   function handleNextStep() {
+    setTransitioning(true);
     const nextStep = getStepById(currentStep.next_step_id);
     if (!nextStep) return;
     setHistory((prev) => [...prev, { step: currentStep, issueId: id }]);
     setCurrentStep(nextStep);
+    setTransitioning(false);
   }
 
   function handleJumpToStep(step, index) {
@@ -230,6 +225,18 @@ function Troubleshooter() {
     navigate("/");
   }
 
+  if (!steps.length)
+    return (
+      <div className="flex flex-col justify-center items-center gap-5 h-screen">
+        <div>No steps found, add some steps to the issue.</div>
+        <button
+          className=" text-neutral-300 border-b border-neutral-400 cursor-pointer  left-0"
+          onClick={() => navigate("/")}
+        >
+          ⬅ Back to issue list
+        </button>
+      </div>
+    );
   if (!currentStep) return <Loading />;
 
   if (transitioning) return <Loading>Switching issue...</Loading>;
@@ -294,10 +301,11 @@ function Troubleshooter() {
             )}
           </div>
         </div>
+
         <img
-          className="w-full max-w-7xl object-contain  h-auto"
+          className="w-full max-w-7xl object-contain h-auto"
           src={currentStep.image_url}
-          alt={currentStep.image_url}
+          alt="Step Illustration"
         />
       </div>
     </div>

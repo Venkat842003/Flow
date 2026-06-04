@@ -39,7 +39,7 @@ function StepEditModal({
   return (
     <div className=" fixed inset-0 z-50 bg-black/50 ">
       <div
-        className="max-w-3xl mx-auto mt-10 bg-neutral-900 rounded-lg p-4 overflow-y-auto max-h-[90vh]"
+        className="max-w-3xl mx-auto mt-10 bg-neutral-800 rounded-lg p-4 overflow-y-auto max-h-[90vh] shadow-lg shadow-neutral-900 border border-neutral-700"
         onClick={(e) => e.stopPropagation()} // ← prevent clicks inside closing modal
       >
         <div className=" flex justify-end">
