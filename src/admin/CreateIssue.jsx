@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Button from "../components/Button";
-import { supabase } from "../lib/supabase";
 import { useNavigate } from "react-router-dom";
+import createIssue from "../api/createIssue";
 
 function CreateIssue() {
   const [newIssue, setNewIssue] = useState("");
@@ -12,18 +12,14 @@ function CreateIssue() {
     e.preventDefault();
     if (!newIssue.trim()) return;
     setLoading(true);
-
-    const { data, error } = await supabase
-      .from("issues")
-      .insert([{ description: newIssue }])
-      .select()
-      .single();
-    setLoading(false);
-    if (error) {
+    try {
+      const data = await createIssue(newIssue);
+      navigate(`/admin/issues/${data.id}/floweditor`);
+    } catch (error) {
       console.error(error.message);
-      return;
+    } finally {
+      setLoading(false);
     }
-    navigate(`/admin/issues/${data.id}/floweditor`);
   }
   return (
     <div className=" flex flex-col gap-5">

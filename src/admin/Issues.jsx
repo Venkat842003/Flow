@@ -3,11 +3,11 @@ import getIssues from "../hooks/getIssues";
 import Button from "../components/Button";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import Loading from "../components/Loading";
-import { supabase } from "../lib/supabase";
 import useDebounce from "../hooks/useDebounce";
 import getSteps from "../hooks/getSteps";
-import { Network,  Trash } from "lucide-react";
+import { Network, Trash } from "lucide-react";
 import { SlOptionsVertical } from "react-icons/sl";
+import deleteIssue from "../api/deleteIssues";
 
 function Issues() {
   const [issues, setIssues] = useState([]);
@@ -46,14 +46,18 @@ function Issues() {
       "Are you sure you want to delete this issue, This will delete all the steps associated with this step",
     );
     if (!confirmed) return;
+    setLoading(true);
 
-    const { error } = await supabase.from("issues").delete().eq("id", id);
+    try {
+      await deleteIssue(id);
 
-    if (error) {
-      console.error(error.message);
-    } else {
       setIssues((prev) => prev.filter((issue) => issue.id !== id));
       alert("Issue deleted succesfully");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete issue");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -67,7 +71,7 @@ function Issues() {
     steps.length > 0 &&
     JSON.stringify(parsedHistory.steps) !== JSON.stringify(steps);
 
- /*  function handleEditIssue(id) {
+  /*  function handleEditIssue(id) {
     localStorage.removeItem("step-editor-history");
     navigate(`/admin/issues/${id}/steps`);
   }
@@ -100,7 +104,7 @@ function Issues() {
             <div className="flex items-center gap-3 ">
               {optionsOpen === issue.id && (
                 <div className=" flex gap-3 ">
-                 {/*  {currentEditingIssue === issue.id && hasChanges ? (
+                  {/*  {currentEditingIssue === issue.id && hasChanges ? (
                     <Button
                       onClick={() => handleContinueEditing(issue.id)}
                       color={index % 2 === 0 ? "primary" : "secondary"}

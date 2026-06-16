@@ -1,15 +1,10 @@
-import { supabase } from "../lib/supabase";
+import { apiFetch } from "../api/api";
 
 export default async function getSteps(issue_id) {
-  const { data, error } = await supabase
-    .from("steps")
-    .select("*")
-    .eq("issue_id", issue_id)
-    .order("order", { ascending: true });
-  if (error) {
-    console.error(error.message);
-    return [];
-  }
+  const response = await apiFetch(`/steps/${issue_id}`);
 
-  return data || [];
+  if (!response.ok) {
+    throw new Error("Failed to fetch steps");
+  }
+  return response.json();
 }

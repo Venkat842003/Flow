@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { supabase } from "../lib/supabase";
-import { Navigate, useNavigate, useOutletContext } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import AuthForm from "../components/AuthForm";
+import { login } from "../api/auth";
+import { isAuthenticated } from "../utils/auth";
 
+// const { user } = useOutletContext();
 function Signin() {
-  const { user } = useOutletContext();
-
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
@@ -14,21 +14,23 @@ function Signin() {
     e.preventDefault();
     setError("");
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const data = await login(email, password);
 
-    if (error) {
-      setError(error.message);
-      console.error(error.message);
-    }
-    if (data.user) {
-      navigate("/admin");
+      localStorage.setItem("token", data.token);
+
+      navigate("/admin/issues");
+    } catch (err) {
+      setError(err.message);
+      console.error(err);
     }
   }
 
-  if (user) return <Navigate to="/admin/issues" />;
+  // if (user) return <Navigate to="/admin/issues" />;
+
+  if (isAuthenticated()) {
+    return <Navigate to="/admin/issues" />;
+  }
 
   return <AuthForm onSubmit={handleSignin} error={error} />;
 }

@@ -1,22 +1,18 @@
-import {  Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabase";
 import { FaUserCircle } from "react-icons/fa";
 import { RiLogoutBoxFill } from "react-icons/ri";
-function Header({ searchIssue, setSearchIssue, user }) {
+import { isAuthenticated, logout } from "../utils/auth";
+function Header({ searchIssue, setSearchIssue }) {
   const navigate = useNavigate();
 
-  async function handleLogout() {
+  function handleLogout() {
     const confirmed = window.confirm("Are you sure you want to Logout");
 
     if (!confirmed) return;
 
-    const { error } = await supabase.auth.signOut();
-    navigate("/");
-
-    if (error) {
-      console.error(error.message);
-    }
+    logout();
+    navigate("/signin");
   }
 
   return (
@@ -39,8 +35,7 @@ function Header({ searchIssue, setSearchIssue, user }) {
 
         <div className="text-xl font-bold cursor-pointer flex gap-4 items-center">
           <FaUserCircle size={30} onClick={() => navigate("/signin")} />
-          {user && (
-            
+          {isAuthenticated() && (
             <RiLogoutBoxFill size={30} onClick={handleLogout} />
           )}
         </div>

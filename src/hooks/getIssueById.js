@@ -1,6 +1,7 @@
-import { supabase } from "../lib/supabase";
+
+import getIssues from "./getIssues";
 
 export async function getIssueById(id) {
-  const {data} = await supabase.from("issues").select().eq("id", id).single();
-  return data;
+  const issues = await getIssues();
+  return issues.find((issue) => issue.id === id);
 }

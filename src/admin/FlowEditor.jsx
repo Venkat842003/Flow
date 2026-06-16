@@ -8,8 +8,9 @@ import getSteps from "../hooks/getSteps";
 import getIssues from "../hooks/getIssues";
 import StepEditModal from "../components/StepEditModal";
 import Button from "../components/Button";
-import { supabase } from "../lib/supabase";
 import Loading from "../components/Loading";
+import saveSteps from "../api/savesSteps";
+import deleteStep from "../api/deleteStep";
 
 const NODE_WIDTH = 220;
 const NODE_HEIGHT = 90;
@@ -308,7 +309,7 @@ function FlowEditor() {
       is_question: false,
       is_start: false,
       is_end: false,
-      order: steps.length + 1,
+      step_order: steps.length + 1,
       next_step_id: null,
       next_step_yes: null,
       next_step_no: null,
@@ -328,7 +329,7 @@ function FlowEditor() {
       is_question: false,
       is_start: false,
       is_end: false,
-      order: steps.length + 1,
+      step_order: steps.length + 1,
       next_step_id: null,
       next_step_yes: null,
       next_step_no: null,
@@ -355,9 +356,7 @@ function FlowEditor() {
       setSaveLoading(true);
       validateSteps(steps);
 
-      const { error } = await supabase.from("steps").upsert(steps);
-
-      if (error) throw error;
+      await saveSteps(steps);
 
       localStorage.removeItem("step-editor-history");
       alert("Saved successfully");
@@ -385,16 +384,18 @@ function FlowEditor() {
 
     for (const step of steps) {
       if (!step.instruction) {
-        throw new Error(`Step ${step.order}: Step instruction is required`);
+        throw new Error(
+          `Step ${step.step_order}: Step instruction is required`,
+        );
       }
 
       if (!step.is_question && !step.next_step_id && !step.is_end) {
-        throw new Error(`Step ${step.order}: Missing next step`);
+        throw new Error(`Step ${step.step_order}: Missing next step`);
       }
 
       if (step.is_question) {
         if (!step.next_step_yes) {
-          throw new Error(`Step ${step.order}: Missing YES path`);
+          throw new Error(`Step ${step.step_order}: Missing YES path`);
         }
 
         const hasNoStep = !!step.next_step_no;
@@ -403,13 +404,15 @@ function FlowEditor() {
         // Both selected
         if (hasNoStep && hasNoIssue) {
           throw new Error(
-            `Step ${step.order}: NO cannot have both step and issue`,
+            `Step ${step.step_order}: NO cannot have both step and issue`,
           );
         }
 
         //  Neither selected
         if (!hasNoStep && !hasNoIssue) {
-          throw new Error(`Step ${step.order}: NO must go to step or issue`);
+          throw new Error(
+            `Step ${step.step_order}: NO must go to step or issue`,
+          );
         }
       }
     }
@@ -419,63 +422,45 @@ function FlowEditor() {
     if (!file) return;
     setUploadingStepId(stepId);
 
-    const step = steps.find((s) => s.id === stepId);
+    const formData = new FormData();
+    formData.append("image", file);
+    formData.append("stepId", stepId);
 
-    if (step.image_url) {
-      const oldPath = decodeURIComponent(step.image_url.split("/").pop());
+    const response = await fetch("http://localhost:5000/api/upload", {
+      method: "POST",
+      body: formData,
+    });
 
-      const { error } = await supabase.storage
-        .from("step-images")
-        .remove([oldPath]);
+    const data = await response.json();
+    console.log(data);
 
-      if (error) {
-        console.error(error.message);
-        setUploadingStepId(null);
-        return;
-      }
-    }
-
-    const fileName = `${crypto.randomUUID()}-${file.name}`;
-
-    const { error } = await supabase.storage
-      .from("step-images")
-      .upload(fileName, file);
-
-    if (error) {
-      console.error(error.message);
-      setUploadingStepId(null);
-      return;
-    }
-
-    const { data } = await supabase.storage
-      .from("step-images")
-      .getPublicUrl(fileName);
-
-    handleUpdate(stepId, { image_url: data.publicUrl });
+    handleUpdate(stepId, {
+      image_url: data.imageUrl,
+      cloudinary_public_id: data.publicId,
+    });
     setUploadingStepId(null);
   }
 
   async function handleDeleteStep(id) {
     const confirmed = window.confirm(
-      `Are you sure you want to delete Step: ${steps.find((s) => s.id === id)?.order} ?`,
+      `Are you sure you want to delete Step: ${steps.find((s) => s.id === id)?.step_order} ?`,
     );
     if (!confirmed) return;
     setLoading(true);
 
-    const { error } = await supabase.from("steps").delete().eq("id", id);
-    if (error) {
-      console.error(error.message);
+    try {
+      await deleteStep(id);
+      const remaining = steps.filter((s) => s.id !== id);
+      setSteps(remaining);
+      if (remaining.length === 0) {
+        localStorage.removeItem("step-editor-history");
+      }
+    } catch (error) {
+      console.error("Failed to delete step:", error);
+      alert("Failed to delete step. Please try again.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const remaining = steps.filter((s) => s.id !== id);
-    setSteps(remaining);
-    if (remaining.length === 0) {
-      localStorage.removeItem("step-editor-history");
-    }
-
-    setLoading(false);
   }
 
   function onNodeClick(_, node) {

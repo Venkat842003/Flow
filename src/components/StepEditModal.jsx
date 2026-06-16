@@ -163,11 +163,11 @@ function StepEditModal({
 
           <div className=" flex flex-col gap-6  items-center max-w-sm w-full">
             <label className="bg-sky-600 px-4 py-2 rounded-xl cursor-pointer hover:bg-sky-500">
-              {step.image_url
-                ? uploadingStepId === step.id
-                  ? "Uploading..."
-                  : " Change Image"
-                : "Add Image"}
+              {uploadingStepId === step.id
+                ? "Uploading..."
+                : step.image_url
+                  ? "Change image"
+                  : "Add image"}
               <input
                 type="file"
                 accept="image/*"
