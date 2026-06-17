@@ -7,7 +7,6 @@ async function login(req, res) {
     const { email, password } = req.body;
 
   
-    console.log(email, password);
 
     const result = await pool.query(
       `
@@ -17,7 +16,7 @@ async function login(req, res) {
     );
 
     const user = result.rows[0];
-    console.log(user);
+  
 
     if (!user) {
       return res.status(401).json({

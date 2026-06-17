@@ -8,7 +8,6 @@ import CreateIssue from "./admin/CreateIssue";
 import Signin from "./pages/Signin";
 import Users from "./admin/Users";
 import FlowEditor from "./admin/FlowEditor";
-import NodeTest from "./pages/NodeTest";
 
 function App() {
   return (
@@ -18,7 +17,6 @@ function App() {
         <Route index element={<HomePage />} />
         <Route path="flow/:id" element={<Troubleshooter />} />
         <Route path="signin" element={<Signin />} />
-        <Route path="test" element={<NodeTest />} />
       {/* admin */}
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Issues />} />

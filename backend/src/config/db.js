@@ -6,8 +6,6 @@ const pool = new Pool({
     rejectUnauthorized: false,
   },
 });
-console.log("DATABASE_URL exists:", !!process.env.DATABASE_URL);
-console.log(process.env.DATABASE_URL?.substring(0, 20));
 
 module.exports = pool;
 

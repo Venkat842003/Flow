@@ -14,6 +14,7 @@ function Troubleshooter() {
   const [issue, setIssue] = useState(null);
   const [history, setHistory] = useState([]);
   const [transitioning, setTransitioning] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const [currentStep, setCurrentStep] = useState(null);
 
@@ -36,50 +37,58 @@ function Troubleshooter() {
 
   useEffect(() => {
     async function fetchSteps() {
-      const steps = await getSteps(id);
-      const issue = await getIssueById(id);
+      try {
+        setLoading(true);
 
-      setSteps(steps);
-      setIssue(issue);
+        const steps = await getSteps(id);
+        const issue = await getIssueById(id);
 
-      const resumeStepId = location.state?.stepId;
-      const resumeHistory = location.state?.history;
-      const resumePreviousIssue = location.state?.previousIssue;
+        setSteps(steps);
+        setIssue(issue);
 
-      if (resumeStepId) {
-        const resumeStep = steps.find((s) => s.id === resumeStepId);
+        const resumeStepId = location.state?.stepId;
+        const resumeHistory = location.state?.history;
+        const resumePreviousIssue = location.state?.previousIssue;
 
-        if (resumeStep) {
-          setCurrentStep(resumeStep);
-          setHistory(resumeHistory || []);
-          setPreviousIssue(resumePreviousIssue || null);
-          setTransitioning(false);
+        if (resumeStepId) {
+          const resumeStep = steps.find((s) => s.id === resumeStepId);
 
-          return;
-        }
-      }
+          if (resumeStep) {
+            setCurrentStep(resumeStep);
+            setHistory(resumeHistory || []);
+            setPreviousIssue(resumePreviousIssue || null);
+            setTransitioning(false);
 
-      const savedState = localStorage.getItem("flow-state");
-      if (savedState) {
-        const parsedState = JSON.parse(savedState);
-
-        if (parsedState) {
-          setHistory(parsedState.history || []);
-          setPreviousIssue(parsedState.previousIssue || null);
-
-          const restoredStep = steps.find(
-            (s) => s.id === parsedState.currentStep.id,
-          );
-          if (restoredStep) {
-            setCurrentStep(restoredStep);
             return;
           }
         }
-      }
 
-      const firstStep = steps.find((step) => step.is_start);
-      setCurrentStep(firstStep);
-      setTransitioning(false);
+        const savedState = localStorage.getItem("flow-state");
+        if (savedState) {
+          const parsedState = JSON.parse(savedState);
+
+          if (parsedState) {
+            setHistory(parsedState.history || []);
+            setPreviousIssue(parsedState.previousIssue || null);
+
+            const restoredStep = steps.find(
+              (s) => s.id === parsedState.currentStep?.id,
+            );
+            if (restoredStep) {
+              setCurrentStep(restoredStep);
+              return;
+            }
+          }
+        }
+
+        const firstStep = steps.find((step) => step.is_start);
+        setCurrentStep(firstStep);
+        setTransitioning(false);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     }
     fetchSteps();
   }, [id, location.state]);
@@ -87,31 +96,6 @@ function Troubleshooter() {
   function getStepById(id) {
     return steps.find((s) => s.id === id);
   }
-
-  /*  function preloadImage(url) {
-      if (!url) return;
-      const img = new Image();
-      img.src = url;
-    } */
-
-  /*  useEffect(() => {
-    if (!currentStep) return;
-    
-
-    // preload next possible images
-    if (currentStep.next_step_id) {
-      const next = getStepById(currentStep.next_step_id);
-      preloadImage(next?.image_url);
-    }
-    if (currentStep.next_step_yes) {
-      const next = getStepById(currentStep.next_step_yes);
-      preloadImage(next?.image_url);
-    }
-    if (currentStep.next_step_no) {
-      const next = getStepById(currentStep.next_step_no);
-      preloadImage(next?.image_url);
-    }
-  }, [currentStep, getStepById]); */
 
   function handlePrevious() {
     if (history.length === 0) return;
@@ -224,6 +208,7 @@ function Troubleshooter() {
     localStorage.removeItem("flow-state");
     navigate("/");
   }
+  if (loading) return <Loading />;
 
   if (!steps.length)
     return (
@@ -237,7 +222,6 @@ function Troubleshooter() {
         </button>
       </div>
     );
-  if (!currentStep) return <Loading />;
 
   if (transitioning) return <Loading>Switching issue...</Loading>;
 

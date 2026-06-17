@@ -433,7 +433,6 @@ function FlowEditor() {
     });
 
     const data = await response.json();
-    console.log(data);
 
     handleUpdate(stepId, {
       image_url: data.imageUrl,

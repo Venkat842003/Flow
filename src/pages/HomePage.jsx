@@ -10,7 +10,6 @@ function HomePage() {
 
   const [data, setData] = useState([]);
 
-  const [test, setTest] = useState("");
   const navigate = useNavigate();
 
   const savedState = localStorage.getItem("flow-state");
@@ -52,7 +51,7 @@ function HomePage() {
           key={issue.id}
         >
           <h1>{issue.description}</h1>
-          <p>{test}</p>
+
           {activeFlow === issue.id ? (
             <Button onClick={() => handleContinue(issue.id)} color="orange">
               {" "}
