@@ -11,6 +11,7 @@ import Button from "../components/Button";
 import Loading from "../components/Loading";
 import saveSteps from "../api/savesSteps";
 import deleteStep from "../api/deleteStep";
+import { apiFetch } from "../api/api";
 
 const NODE_WIDTH = 220;
 const NODE_HEIGHT = 90;
@@ -426,7 +427,7 @@ function FlowEditor() {
     formData.append("image", file);
     formData.append("stepId", stepId);
 
-    const response = await fetch("http://localhost:5000/api/upload", {
+    const response = await apiFetch("/upload", {
       method: "POST",
       body: formData,
     });

@@ -28,8 +28,8 @@ async function createIssue(req, res) {
 
 async function deleteIssue(req, res) {
   try {
-    const { id } = req.params;
-    await pool.query(`DELETE FROM issues WHERE id=$1`, [id]);
+    const { issueId } = req.params;
+    await pool.query(`DELETE FROM issues WHERE id=$1`, [issueId]);
 
     res.json({ message: "Issue deleted successfully" });
   } catch (err) {

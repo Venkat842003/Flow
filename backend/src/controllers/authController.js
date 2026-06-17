@@ -5,6 +5,8 @@ const jwt = require("jsonwebtoken");
 async function login(req, res) {
   try {
     const { email, password } = req.body;
+
+  
     console.log(email, password);
 
     const result = await pool.query(
