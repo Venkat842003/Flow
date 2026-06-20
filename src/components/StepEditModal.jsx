@@ -53,7 +53,7 @@ function StepEditModal({
         >
           <div className="flex  flex-1 flex-col gap-4  ">
             <div className="flex gap-3">
-              <h1 className="text-xl font-bold">Step :{step.order}</h1>
+              <h1 className="text-xl font-bold">Step :{step.step_order}</h1>
               <Button
                 color="red"
                 type="button"

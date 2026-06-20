@@ -132,7 +132,7 @@ function Issues() {
                     <Button
                       onClick={() => handleFlowEdit(issue.id)}
                       color={index % 2 === 0 ? "primary" : "secondary"}
-                      hoverColor="hover:bg-fuchsia-800"
+                      hoverColor="hover:bg-sky-600"
                     >
                       <Network size={16} /> Flow-Edit
                     </Button>

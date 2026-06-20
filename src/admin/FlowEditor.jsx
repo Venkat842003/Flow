@@ -109,7 +109,7 @@ function FlowEditor() {
       data: {
         label: (
           <div className="text-center text-black px-2">
-            <div className="font-semibold text-sm">Step {step.order}</div>
+            <div className="font-semibold text-sm">Step {step.step_order}</div>
 
             <div className="text-xs mt-1 line-clamp-3">
               {step.instruction || "Untitled Step"}
@@ -484,19 +484,20 @@ function FlowEditor() {
           </Button>
         </div>
       </div>
-
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodeClick={onNodeClick}
-        fitView
-        nodesDraggable={false}
-        nodesConnectable={false}
-        elementsSelectable
-      >
-        <Background />
-        <Controls />
-      </ReactFlow>
+      <div style={{ height: "100%" }}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodeClick={onNodeClick}
+          fitView
+          nodesDraggable={true}
+          nodesConnectable={false}
+          elementsSelectable={true}
+        >
+          <Background />
+          <Controls />
+        </ReactFlow>
+      </div>
 
       {selectedStep && (
         <StepEditModal
