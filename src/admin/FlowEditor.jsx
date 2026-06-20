@@ -485,23 +485,25 @@ function FlowEditor() {
         </div>
       </div>
       <div style={{ height: "100%" }}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodeClick={onNodeClick}
-          fitView
-          nodesDraggable={true}
-          nodesConnectable={false}
-          elementsSelectable={true}
-        >
-          <Background />
-          <Controls />
-        </ReactFlow>
+
+
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodeClick={onNodeClick}
+        fitView
+        nodesDraggable={false}
+        nodesConnectable={false}
+        elementsSelectable
+      >
+        <Background />
+        <Controls />
+      </ReactFlow>
       </div>
 
       {selectedStep && (
         <StepEditModal
-          step={selectedStep}
+        step={selectedStep}
           steps={steps}
           issues={issues}
           handleUpdate={handleUpdate}
