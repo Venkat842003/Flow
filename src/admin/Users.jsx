@@ -3,17 +3,21 @@ import Button from "../components/Button";
 import AuthForm from "../components/AuthForm";
 import createUser from "../api/createUser";
 import getUsers from "../api/getUsers";
+import Loading from "../components/Loading";
 
 function Users() {
   const [error, setError] = useState("");
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const [formOpen, setFormOpen] = useState(false);
 
   useEffect(() => {
     async function fetchUsers() {
+      setLoading(true);
       const users = await getUsers();
       setUsers(users);
+      setLoading(false);
     }
     fetchUsers();
   }, []);
@@ -37,6 +41,8 @@ function Users() {
       setError(err.message);
     }
   }
+
+  if (loading) return <Loading />;
 
   return (
     <div className="flex flex-col gap-4">
