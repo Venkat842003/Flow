@@ -28,6 +28,7 @@ function Issues() {
       const parsedHistory = savedHistory ? JSON.parse(savedHistory) : null;
       if (parsedHistory) {
         const issueId = parsedHistory.issueId;
+        setOptionsOpen(issueId);
         const stepsData = await getSteps(issueId);
         setSteps(stepsData);
       }
@@ -68,17 +69,8 @@ function Issues() {
 
   const hasChanges =
     parsedHistory &&
-    steps.length > 0 &&
     JSON.stringify(parsedHistory.steps) !== JSON.stringify(steps);
 
-  /*  function handleEditIssue(id) {
-    localStorage.removeItem("step-editor-history");
-    navigate(`/admin/issues/${id}/steps`);
-  }
-
-  function handleContinueEditing(id) {
-    navigate(`/admin/issues/${id}/steps`);
-  } */
   function handleFlowEdit(id) {
     localStorage.removeItem("step-editor-history");
     navigate(`/admin/issues/${id}/floweditor`);
@@ -104,29 +96,13 @@ function Issues() {
             <div className="flex items-center gap-3 ">
               {optionsOpen === issue.id && (
                 <div className=" flex gap-3 ">
-                  {/*  {currentEditingIssue === issue.id && hasChanges ? (
-                    <Button
-                      onClick={() => handleContinueEditing(issue.id)}
-                      color={index % 2 === 0 ? "primary" : "secondary"}
-                    >
-                      Continue Editing
-                    </Button>
-                  ) : (
-                    <Button
-                      color={index % 2 === 0 ? "primary" : "secondary"}
-                      hoverColor="hover:bg-sky-600"
-                      onClick={() => handleEditIssue(issue.id)}
-                    >
-                      <Pencil size={16} /> Edit
-                    </Button>
-                  )} */}
                   {currentEditingIssue === issue.id && hasChanges ? (
                     <Button
                       color={index % 2 === 0 ? "primary" : "secondary"}
                       onClick={() => handleContinueFlowEditing(issue.id)}
                       color="orange"
                     >
-                      Continue Flow Editing
+                      Continue Editing
                     </Button>
                   ) : (
                     <Button
@@ -134,7 +110,7 @@ function Issues() {
                       color={index % 2 === 0 ? "primary" : "secondary"}
                       hoverColor="hover:bg-sky-600"
                     >
-                      <Network size={16} /> Flow-Edit
+                      <Network size={16} /> Edit Flow
                     </Button>
                   )}
                   <Button
