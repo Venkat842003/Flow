@@ -448,7 +448,7 @@ function FlowEditor() {
     }
   }
 
-  async function handleDeleteStep(id) {
+  async function handleDeleteStep(id, publicId) {
     const confirmed = window.confirm(
       `Are you sure you want to delete Step: ${steps.find((s) => s.id === id)?.step_order} ?`,
     );
@@ -456,7 +456,7 @@ function FlowEditor() {
     setLoading(true);
 
     try {
-      await deleteStep(id);
+      await deleteStep(id, publicId);
       const remaining = steps.filter((s) => s.id !== id);
       setSteps(remaining);
       if (remaining.length === 0) {

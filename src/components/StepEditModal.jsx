@@ -57,7 +57,9 @@ function StepEditModal({
               <Button
                 color="red"
                 type="button"
-                onClick={() => handleDeleteStep(step.id)}
+                onClick={() =>
+                  handleDeleteStep(step.id, step.cloudinary_public_id)
+                }
               >
                 Delete Step
               </Button>

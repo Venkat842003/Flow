@@ -75,17 +75,20 @@ async function deleteStep(req, res) {
   try {
     const { stepId } = req.params;
 
+    const { publicId } = req.body;
+
     const result = await pool.query(
       "SELECT cloudinary_public_id FROM steps WHERE id = $1",
       [stepId],
     );
 
-    const step = result.rows[0];
+    const dbPublicId = result.rows[0]?.cloudinary_public_id;
 
-    if (step?.cloudinary_public_id) {
-      await cloudinary.uploader.destroy(step.cloudinary_public_id);
+    const publicIdToDelete = publicId || dbPublicId;
+
+    if (publicIdToDelete) {
+      await cloudinary.uploader.destroy(publicIdToDelete);
     }
-
     await pool.query(`DELETE FROM steps WHERE id = $1`, [stepId]);
 
     res.json({ message: "Step deleted successfully" });
