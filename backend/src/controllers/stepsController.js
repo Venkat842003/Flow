@@ -1,4 +1,5 @@
 const pool = require("../config/db");
+const cloudinary = require("../config/cloudinary");
 
 async function getStepsByIssueId(req, res) {
   try {
@@ -23,8 +24,8 @@ async function saveSteps(req, res) {
     for (const step of steps) {
       await pool.query(
         ` INSERT INTO steps (id, issue_id, instruction, image_url, is_question, next_step_id, 
-        next_step_yes, next_step_no, next_issue_id, is_start, created_at, step_order, is_end) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        next_step_yes, next_step_no, next_issue_id, is_start, created_at, step_order, is_end, cloudinary_public_id) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
         
         ON CONFLICT (id) 
         DO UPDATE SET
@@ -39,7 +40,8 @@ async function saveSteps(req, res) {
         is_start = EXCLUDED.is_start,
         created_at = EXCLUDED.created_at,
         step_order = EXCLUDED.step_order,
-        is_end = EXCLUDED.is_end
+        is_end = EXCLUDED.is_end,
+        cloudinary_public_id = EXCLUDED.cloudinary_public_id
         `,
 
         [
@@ -56,11 +58,12 @@ async function saveSteps(req, res) {
           step.created_at,
           step.step_order,
           step.is_end,
+          step.cloudinary_public_id,
         ],
       );
     }
     await pool.query("COMMIT");
-    res.json({ message: "Steps saved successfully" });  
+    res.json({ message: "Steps saved successfully" });
   } catch (err) {
     await pool.query("ROLLBACK");
     console.error(err);
@@ -71,6 +74,18 @@ async function saveSteps(req, res) {
 async function deleteStep(req, res) {
   try {
     const { stepId } = req.params;
+
+    const result = await pool.query(
+      "SELECT cloudinary_public_id FROM steps WHERE id = $1",
+      [stepId],
+    );
+
+    const step = result.rows[0];
+
+    if (step?.cloudinary_public_id) {
+      await cloudinary.uploader.destroy(step.cloudinary_public_id);
+    }
+
     await pool.query(`DELETE FROM steps WHERE id = $1`, [stepId]);
 
     res.json({ message: "Step deleted successfully" });

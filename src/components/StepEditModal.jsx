@@ -171,7 +171,13 @@ function StepEditModal({
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) => handleImageUpload(step.id, e.target.files[0])}
+                onChange={(e) =>
+                  handleImageUpload(
+                    step.id,
+                    e.target.files[0],
+                    step.cloudinary_public_id,
+                  )
+                }
                 className="hidden"
                 disabled={uploadingStepId === step.id}
               />

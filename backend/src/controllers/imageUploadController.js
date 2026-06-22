@@ -4,7 +4,7 @@ const streamifier = require("streamifier");
 
 async function uploadImage(req, res) {
   try {
-    const { stepId } = req.body;
+    const { stepId, publicId } = req.body;
 
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
@@ -16,8 +16,10 @@ async function uploadImage(req, res) {
 
     const currentStep = stepResult.rows[0];
 
-    if (currentStep?.cloudinary_public_id) {
-      await cloudinary.uploader.destroy(currentStep.cloudinary_public_id);
+    const publicIdToDelete = publicId || currentStep?.cloudinary_public_id;
+
+    if (publicIdToDelete) {
+      await cloudinary.uploader.destroy(publicIdToDelete);
     }
 
     const uploadResult = await new Promise((resolve, reject) => {

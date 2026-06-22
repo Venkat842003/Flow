@@ -1,4 +1,5 @@
 const pool = require("../config/db");
+const cloudinary = require("../config/cloudinary");
 
 const getIssues = async (req, res) => {
   try {
@@ -29,6 +30,19 @@ async function createIssue(req, res) {
 async function deleteIssue(req, res) {
   try {
     const { issueId } = req.params;
+    const result = await pool.query(
+      `SELECT cloudinary_public_id
+   FROM steps
+   WHERE issue_id = $1`,
+      [issueId],
+    );
+
+    for (const step of result.rows) {
+      if (step.cloudinary_public_id) {
+        await cloudinary.uploader.destroy(step.cloudinary_public_id);
+      }
+    }
+
     await pool.query(`DELETE FROM issues WHERE id=$1`, [issueId]);
 
     res.json({ message: "Issue deleted successfully" });

@@ -315,6 +315,7 @@ function FlowEditor() {
       next_step_yes: null,
       next_step_no: null,
       next_issue_id: null,
+      cloudinary_public_id: null,
     };
 
     setSteps((prev) => [...prev, newStep]);
@@ -335,6 +336,7 @@ function FlowEditor() {
       next_step_yes: null,
       next_step_no: null,
       next_issue_id: null,
+      cloudinary_public_id: null,
     };
 
     setSteps((prev) => [...prev, newStep]);
@@ -419,26 +421,31 @@ function FlowEditor() {
     }
   }
 
-  async function handleImageUpload(stepId, file) {
+  async function handleImageUpload(stepId, file, publicId) {
     if (!file) return;
-    setUploadingStepId(stepId);
 
-    const formData = new FormData();
-    formData.append("image", file);
-    formData.append("stepId", stepId);
+    try {
+      setUploadingStepId(stepId);
 
-    const response = await apiFetch("/upload", {
-      method: "POST",
-      body: formData,
-    });
+      const formData = new FormData();
+      formData.append("image", file);
+      formData.append("stepId", stepId);
+      formData.append("publicId", publicId);
 
-    const data = await response.json();
+      const response = await apiFetch("/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-    handleUpdate(stepId, {
-      image_url: data.imageUrl,
-      cloudinary_public_id: data.publicId,
-    });
-    setUploadingStepId(null);
+      const data = await response.json();
+
+      handleUpdate(stepId, {
+        image_url: data.imageUrl,
+        cloudinary_public_id: data.publicId,
+      });
+    } finally {
+      setUploadingStepId(null);
+    }
   }
 
   async function handleDeleteStep(id) {
@@ -485,25 +492,23 @@ function FlowEditor() {
         </div>
       </div>
       <div style={{ height: "100%" }}>
-
-
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodeClick={onNodeClick}
-        fitView
-        nodesDraggable={false}
-        nodesConnectable={false}
-        elementsSelectable
-      >
-        <Background />
-        <Controls />
-      </ReactFlow>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodeClick={onNodeClick}
+          fitView
+          nodesDraggable={false}
+          nodesConnectable={false}
+          elementsSelectable
+        >
+          <Background />
+          <Controls />
+        </ReactFlow>
       </div>
 
       {selectedStep && (
         <StepEditModal
-        step={selectedStep}
+          step={selectedStep}
           steps={steps}
           issues={issues}
           handleUpdate={handleUpdate}
