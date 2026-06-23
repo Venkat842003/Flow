@@ -14,6 +14,7 @@ function CreateIssue() {
     setLoading(true);
     try {
       const data = await createIssue(newIssue);
+      localStorage.removeItem("step-editor-history");
       navigate(`/admin/issues/${data.id}/floweditor`);
     } catch (error) {
       console.error(error.message);
