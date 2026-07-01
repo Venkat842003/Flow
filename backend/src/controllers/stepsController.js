@@ -62,7 +62,7 @@ async function saveSteps(req, res) {
           step.step_order,
           step.is_end,
           step.cloudinary_public_id,
-          step.options,
+          JSON.stringify(step.options),
         ],
       );
     }
