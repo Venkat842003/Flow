@@ -22,6 +22,8 @@ async function saveSteps(req, res) {
     const { steps } = req.body;
 
     for (const step of steps) {
+      console.log(typeof step.options[0]);
+      console.log(step.options[0]);
       await pool.query(
         ` INSERT INTO steps (id, issue_id, instruction, image_url, is_question, next_step_id, 
         next_step_yes, next_step_no, next_issue_id, is_start, created_at, step_order, is_end, cloudinary_public_id, options) 
