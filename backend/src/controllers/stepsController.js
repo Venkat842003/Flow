@@ -24,8 +24,8 @@ async function saveSteps(req, res) {
     for (const step of steps) {
       await pool.query(
         ` INSERT INTO steps (id, issue_id, instruction, image_url, is_question, next_step_id, 
-        next_step_yes, next_step_no, next_issue_id, is_start, created_at, step_order, is_end, cloudinary_public_id) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        next_step_yes, next_step_no, next_issue_id, is_start, created_at, step_order, is_end, cloudinary_public_id, options) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
         
         ON CONFLICT (id) 
         DO UPDATE SET
@@ -41,7 +41,8 @@ async function saveSteps(req, res) {
         created_at = EXCLUDED.created_at,
         step_order = EXCLUDED.step_order,
         is_end = EXCLUDED.is_end,
-        cloudinary_public_id = EXCLUDED.cloudinary_public_id
+        cloudinary_public_id = EXCLUDED.cloudinary_public_id,
+        options = EXCLUDED.options
         `,
 
         [
@@ -59,6 +60,7 @@ async function saveSteps(req, res) {
           step.step_order,
           step.is_end,
           step.cloudinary_public_id,
+          step.options,
         ],
       );
     }
