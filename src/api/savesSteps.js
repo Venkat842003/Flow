@@ -2,6 +2,7 @@ import { apiFetch } from "./api";
 
 export default async function saveSteps(steps) {
 
+
   const response = await apiFetch("/steps/save", {
     method: "POST",
     headers: {
@@ -9,8 +10,10 @@ export default async function saveSteps(steps) {
     },
     body: JSON.stringify({ steps }),
   });
+  const data = await response.json();
+
   if (!response.ok) {
-    throw new Error("Failed to save steps");
+    throw new Error(data.message || "Failed to save steps");
   }
-  return response.json();
+  return data;
 }

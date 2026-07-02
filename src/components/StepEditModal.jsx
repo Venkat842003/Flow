@@ -1,3 +1,4 @@
+import { Trash } from "lucide-react";
 import Button from "./Button";
 import StepDropdown from "./StepDropdown";
 
@@ -14,26 +15,38 @@ function StepEditModal({
   uploadingStepId,
   handleCreateNextStep,
   onClose,
+  handleAddOption,
 }) {
-  async function handleNextStepChange(currentStep, value, type) {
-    if (value === type) {
-      await handleCreateNextStep(currentStep, type);
+  async function handleNextStepChange(currentStep, value, option = null) {
+    if (value === "create") {
+      await handleCreateNextStep(currentStep, option);
       return;
     }
 
-    if (type === "Next step if YES") {
+    if (option) {
       handleUpdate(currentStep.id, {
-        next_step_yes: value || null,
-      });
-    } else if (type === "Next step if NO") {
-      handleUpdate(currentStep.id, {
-        next_step_no: value || null,
+        options: currentStep.options.map((o) =>
+          o.id === option.id ? { ...o, next_step_id: value || null } : o,
+        ),
       });
     } else {
       handleUpdate(currentStep.id, {
         next_step_id: value || null,
       });
     }
+  }
+
+  function handleDeleteOption(stepId, optionId) {
+    const confirm = window.confirm(
+      "Are you sure you want to delete this option?",
+    );
+    if (!confirm) return;
+
+    const step = steps.find((s) => s.id === stepId);
+
+    handleUpdate(stepId, {
+      options: step.options.filter((o) => o.id !== optionId),
+    });
   }
 
   return (
@@ -115,50 +128,59 @@ function StepEditModal({
               />
             )}
 
-            {/* Question anser yes or no */}
+            {/* ///////////////////////////////////////OPTIONS///////////////////////////////
+             */}
+
             {step.is_question && (
-              <div>
-                <StepDropdown
-                  step={step}
-                  steps={steps}
-                  value={step.next_step_yes}
-                  handleNextStepChange={handleNextStepChange}
-                  type="Next step if YES"
-                />
-                {!step.next_issue_id && (
-                  <StepDropdown
-                    step={step}
-                    steps={steps}
-                    value={step.next_step_no}
-                    handleNextStepChange={handleNextStepChange}
-                    type="Next step if NO"
-                  />
-                )}
-                {!step.next_step_no && (
-                  <div className="mb-2">
-                    <label>Next issue if NO:</label>
-                    <select
+              <div className=" flex flex-col gap-3">
+                {step.options.map((option, index) => (
+                  <div key={index} className="flex flex-col gap-2">
+                    <div className=" flex gap-3">
+                      <label> {`Option ${index + 1} :`}</label>
+                      <Button
+                        color="red"
+                        onClick={() => handleDeleteOption(step.id, option.id)}
+                      >
+                        <Trash size={15} />
+                      </Button>
+                    </div>
+                    <input
+                      type="text"
+                      value={option.label}
                       onChange={(e) =>
                         handleUpdate(step.id, {
-                          next_issue_id: e.target.value || null,
+                          options: step.options.map((o) =>
+                            o.id === option.id
+                              ? { ...o, label: e.target.value }
+                              : o,
+                          ),
                         })
                       }
-                      value={step.next_issue_id || ""}
+                      className="border border-neutral-600 rounded-sm p-2 w-full"
+                    />
+                    <select
+                      onChange={(e) =>
+                        handleNextStepChange(step, e.target.value, option)
+                      }
+                      value={option.next_step_id || ""}
                       className="border border-neutral-600 rounded-sm pl-2 pr-6 py-2 mt-2 w-full bg-neutral-800"
                     >
-                      <option value="" className="w-full">
-                        --Select Next Issue--
-                      </option>
-                      {issues
-                        .filter((issue) => issue.id !== issue_id)
-                        .map((issue) => (
-                          <option key={issue.id} value={issue.id}>
-                            {issue.description}
+                      <option value="">--Select Next Step--</option>
+                      <option value="create">Create next step +</option>
+                      {steps
+                        .filter((s) => s.id !== step.id)
+                        .map((s) => (
+                          <option key={s.id} value={s.id}>
+                            Step {s.step_order} -{" "}
+                            {s.instruction || "Untitled Step"}
                           </option>
                         ))}
                     </select>
                   </div>
-                )}
+                ))}
+                <Button onClick={() => handleAddOption(step)}>
+                  Add Option
+                </Button>
               </div>
             )}
           </div>

@@ -101,7 +101,6 @@ function Troubleshooter() {
     if (history.length === 0) return;
 
     const prevStep = history[history.length - 1];
-
     if (prevStep.issueId === id) {
       setCurrentStep(prevStep.step);
       setHistory((prev) => prev.slice(0, -1));
@@ -128,6 +127,15 @@ function Troubleshooter() {
     setTransitioning(false);
   }
 
+  function nextStepByOption(stepId) {
+    setTransitioning(true);
+    const nextStep = getStepById(stepId);
+    setHistory((prev) => [...prev, { step: currentStep, issueId: id }]);
+
+    setCurrentStep(nextStep);
+    setTransitioning(false);
+  }
+
   function handleJumpToStep(step, index) {
     const confirmed = window.confirm(
       "Are you sure you want to jump to this step? Your progress after this step will be lost.",
@@ -149,27 +157,6 @@ function Troubleshooter() {
           previousIssue?.issueId === step?.issueId ? null : previousIssue,
       },
     });
-  }
-
-  function handleAnswer(answer) {
-    if (answer === "yes") {
-      const nextStep = getStepById(currentStep.next_step_yes);
-      setHistory((prev) => [...prev, { step: currentStep, issueId: id }]);
-      setCurrentStep(nextStep);
-    }
-    if (answer === "no" && !currentStep.next_issue_id) {
-      const nextStep = getStepById(currentStep.next_step_no);
-      setHistory((prev) => [...prev, { step: currentStep, issueId: id }]);
-      setCurrentStep(nextStep);
-    }
-
-    if (answer === "no" && currentStep.next_issue_id) {
-      setPreviousIssue({ issueId: id, step: currentStep, history: history });
-      setHistory((prev) => [...prev, { step: currentStep, issueId: id }]);
-      setTransitioning(true);
-
-      navigate(`/flow/${currentStep.next_issue_id}`);
-    }
   }
 
   function handleJumpToPreviousIssue() {
@@ -268,14 +255,13 @@ function Troubleshooter() {
 
           <div className="w-28 ">
             {currentStep.is_question ? (
-              <div className="flex gap-1 w-full">
-                <Button onClick={() => handleAnswer("yes")} text="md">
-                  Yes
-                </Button>
-                <Button onClick={() => handleAnswer("no")} text="md">
-                  No
-                </Button>
-              </div>
+              currentStep.options.map((option) => (
+                <div key={option.id}>
+                  <Button onClick={() => nextStepByOption(option.next_step_id)}>
+                    {option.label}
+                  </Button>{" "}
+                </div>
+              ))
             ) : !currentStep.is_end ? (
               <Button onClick={handleNextStep} text="md">
                 Next

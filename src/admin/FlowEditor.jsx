@@ -17,6 +17,8 @@ const NODE_WIDTH = 220;
 const NODE_HEIGHT = 90;
 
 function getLayoutedElements(nodes, edges) {
+  /////////////////////////////////////////////////
+
   const dagreGraph = new dagre.graphlib.Graph();
 
   dagreGraph.setGraph({
@@ -52,6 +54,8 @@ function getLayoutedElements(nodes, edges) {
     };
   });
 }
+
+/////////////////////////////////////////////////////////////
 
 function FlowEditor() {
   const { id } = useParams();
@@ -151,9 +155,15 @@ function FlowEditor() {
 
     const uniqueIssueIds = [
       ...new Set(
-        steps
-          .filter((step) => step.next_issue_id)
-          .map((step) => step.next_issue_id),
+        steps.flatMap((step) => {
+          if (step.is_question) {
+            return (step.options || [])
+              .filter((option) => option.next_issue_id)
+              .map((option) => option.next_issue_id);
+          }
+
+          return step.next_issue_id ? [step.next_issue_id] : [];
+        }),
       ),
     ];
 
@@ -180,82 +190,87 @@ function FlowEditor() {
     const edges = [];
 
     steps.forEach((step) => {
-      if (step.next_step_id) {
-        edges.push({
-          id: `${step.id}-next`,
-          source: step.id.toString(),
-          target: step.next_step_id.toString(),
-          type: "smoothstep",
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-          },
-        });
+      // Normal step
+      if (!step.is_question) {
+        if (step.next_step_id) {
+          edges.push({
+            id: `${step.id}-next`,
+            source: step.id.toString(),
+            target: step.next_step_id.toString(),
+            type: "smoothstep",
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+            },
+          });
+        }
+
+        if (step.next_issue_id) {
+          edges.push({
+            id: `${step.id}-issue`,
+            source: step.id.toString(),
+            target: `issue-${step.next_issue_id}`,
+            label: "Issue",
+            type: "smoothstep",
+            style: {
+              stroke: "#a855f7",
+              strokeDasharray: "5 5",
+            },
+            labelStyle: {
+              fill: "#a855f7",
+              fontWeight: 600,
+            },
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+            },
+          });
+        }
+
+        return;
       }
 
-      if (step.next_step_yes) {
-        edges.push({
-          id: `${step.id}-yes`,
-          source: step.id.toString(),
-          target: step.next_step_yes.toString(),
-          label: "YES",
-          type: "smoothstep",
-          animated: true,
-          style: {
-            stroke: "#22c55e",
-            strokeWidth: 2,
-          },
-          labelStyle: {
-            fill: "#22c55e",
-            fontWeight: 600,
-          },
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-          },
-        });
-      }
+      // Question step
+      (step.options || []).forEach((option) => {
+        if (option.next_step_id) {
+          edges.push({
+            id: `${step.id}-${option.id}`,
+            source: step.id.toString(),
+            target: option.next_step_id.toString(),
+            label: option.label,
+            type: "smoothstep",
+            animated: true,
+            style: {
+              strokeWidth: 2,
+            },
+            labelStyle: {
+              fontWeight: 600,
+            },
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+            },
+          });
+        }
 
-      if (step.next_step_no) {
-        edges.push({
-          id: `${step.id}-no`,
-          source: step.id.toString(),
-          target: step.next_step_no.toString(),
-          label: "NO",
-          type: "smoothstep",
-          animated: true,
-          style: {
-            stroke: "#ef4444",
-            strokeWidth: 2,
-          },
-          labelStyle: {
-            fill: "#ef4444",
-            fontWeight: 600,
-          },
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-          },
-        });
-      }
-
-      if (step.next_issue_id) {
-        edges.push({
-          id: `${step.id}-issue`,
-          source: step.id.toString(),
-          target: `issue-${step.next_issue_id}`,
-          label: "NO → Issue",
-          type: "smoothstep",
-          style: {
-            stroke: "#a855f7",
-            strokeDasharray: "5 5",
-          },
-          labelStyle: {
-            fill: "#a855f7",
-            fontWeight: 600,
-          },
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-          },
-        });
-      }
+        if (option.next_issue_id) {
+          edges.push({
+            id: `${step.id}-${option.id}-issue`,
+            source: step.id.toString(),
+            target: `issue-${option.next_issue_id}`,
+            label: option.label,
+            type: "smoothstep",
+            style: {
+              stroke: "#a855f7",
+              strokeDasharray: "5 5",
+            },
+            labelStyle: {
+              fill: "#a855f7",
+              fontWeight: 600,
+            },
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+            },
+          });
+        }
+      });
     });
 
     const allNodes = [...stepNodes, ...issueNodes];
@@ -267,6 +282,17 @@ function FlowEditor() {
       edges,
     };
   }, [steps, issues]);
+
+  function handleAddOption(step) {
+    const newOption = {
+      id: crypto.randomUUID(),
+      label: "",
+      next_step_id: null,
+      next_issue_id: null,
+    };
+
+    handleUpdate(step.id, { options: [...step.options, newOption] });
+  }
 
   function handleUpdate(id, updates) {
     setSteps((prev) =>
@@ -312,17 +338,16 @@ function FlowEditor() {
       is_end: false,
       step_order: steps.length + 1,
       next_step_id: null,
-      next_step_yes: null,
-      next_step_no: null,
       next_issue_id: null,
       cloudinary_public_id: null,
+      options: [],
     };
 
     setSteps((prev) => [...prev, newStep]);
     setSelectedStepId(newStep.id);
   }
 
-  function handleCreateNextStep(currentStep, value) {
+  function handleCreateNextStep(currentStep, option = null) {
     const newStep = {
       id: crypto.randomUUID(),
       issue_id: id,
@@ -333,18 +358,19 @@ function FlowEditor() {
       is_end: false,
       step_order: steps.length + 1,
       next_step_id: null,
-      next_step_yes: null,
-      next_step_no: null,
       next_issue_id: null,
       cloudinary_public_id: null,
+      options: [],
     };
 
     setSteps((prev) => [...prev, newStep]);
 
-    if (value === "Next step if YES") {
-      handleUpdate(currentStep.id, { next_step_yes: newStep.id });
-    } else if (value === "Next step if NO") {
-      handleUpdate(currentStep.id, { next_step_no: newStep.id });
+    if (option) {
+      handleUpdate(currentStep.id, {
+        options: currentStep.options.map((o) =>
+          o.id === option.id ? { ...o, next_step_id: newStep.id || null } : o,
+        ),
+      });
     } else {
       handleUpdate(currentStep.id, { next_step_id: newStep.id });
     }
@@ -371,54 +397,147 @@ function FlowEditor() {
       setSaveLoading(false);
     }
   }
+  function validateReachability(steps) {
+    const stepMap = new Map(steps.map((step) => [step.id, step]));
+
+    const startStep = steps.find((step) => step.is_start);
+
+    const visited = new Set();
+
+    function dfs(step) {
+      if (!step || visited.has(step.id)) return;
+
+      visited.add(step.id);
+
+      if (step.is_question) {
+        for (const option of step.options || []) {
+          if (option.next_step_id) {
+            dfs(stepMap.get(option.next_step_id));
+          }
+        }
+      } else if (step.next_step_id) {
+        dfs(stepMap.get(step.next_step_id));
+      }
+    }
+
+    dfs(startStep);
+
+    const orphanSteps = steps.filter((step) => !visited.has(step.id));
+
+    if (orphanSteps.length) {
+      throw new Error(
+        `Orphan steps found: ${orphanSteps
+          .map((step) => step.step_order)
+          .join(", ")}`,
+      );
+    }
+  }
 
   function validateSteps(steps) {
     if (steps.length === 0) {
-      throw new Error("Atleast one step is required");
+      throw new Error("At least one step is required");
     }
+
     const startSteps = steps.filter((s) => s.is_start);
     if (startSteps.length !== 1) {
       throw new Error("Exactly one Start step is required");
     }
-    const EndSteps = steps.filter((s) => s.is_end);
-    if (EndSteps.length < 1) {
-      throw new Error("Atleast one End step is required");
+
+    const endSteps = steps.filter((s) => s.is_end);
+    if (endSteps.length < 1) {
+      throw new Error("At least one End step is required");
     }
 
+    // All valid step ids
+    const stepIds = new Set(steps.map((s) => s.id));
+
     for (const step of steps) {
-      if (!step.instruction) {
+      // Instruction
+      if (!step.instruction.trim()) {
         throw new Error(
           `Step ${step.step_order}: Step instruction is required`,
         );
       }
 
-      if (!step.is_question && !step.next_step_id && !step.is_end) {
-        throw new Error(`Step ${step.step_order}: Missing next step`);
+      // Normal step validation
+      if (!step.is_question && !step.is_end) {
+        if (!step.next_step_id) {
+          throw new Error(`Step ${step.step_order}: Missing next step`);
+        }
+
+        if (!stepIds.has(step.next_step_id)) {
+          throw new Error(`Step ${step.step_order}: Next step does not exist`);
+        }
       }
 
+      // End step validation
+      if (step.is_end && step.next_step_id) {
+        throw new Error(
+          `Step ${step.step_order}: End step cannot have a next step`,
+        );
+      }
+
+      // Question step validation
       if (step.is_question) {
-        if (!step.next_step_yes) {
-          throw new Error(`Step ${step.step_order}: Missing YES path`);
-        }
-
-        const hasNoStep = !!step.next_step_no;
-        const hasNoIssue = !!step.next_issue_id;
-
-        // Both selected
-        if (hasNoStep && hasNoIssue) {
+        if (!step.options.length) {
           throw new Error(
-            `Step ${step.step_order}: NO cannot have both step and issue`,
+            `Step ${step.step_order}: At least one option is required`,
           );
         }
 
-        //  Neither selected
-        if (!hasNoStep && !hasNoIssue) {
+        if (step.next_step_id) {
           throw new Error(
-            `Step ${step.step_order}: NO must go to step or issue`,
+            `Step ${step.step_order}: Question steps must use options instead of next_step_id`,
           );
+        }
+
+        const labels = new Set();
+
+        for (const option of step.options) {
+          // Label
+          if (!option.label.trim()) {
+            throw new Error(
+              `Step ${step.step_order}: Option label is required`,
+            );
+          }
+
+          const normalizedLabel = option.label.trim().toLowerCase();
+
+          if (labels.has(normalizedLabel)) {
+            throw new Error(
+              `Step ${step.step_order}: Duplicate option "${option.label}"`,
+            );
+          }
+
+          labels.add(normalizedLabel);
+
+          const hasStep = !!option.next_step_id;
+          const hasIssue = !!option.next_issue_id;
+
+          // Must connect somewhere
+          if (!hasStep && !hasIssue) {
+            throw new Error(
+              `Step ${step.step_order}: Option "${option.label}" must connect to a step or an issue`,
+            );
+          }
+
+          // Cannot connect to both
+          if (hasStep && hasIssue) {
+            throw new Error(
+              `Step ${step.step_order}: Option "${option.label}" cannot connect to both a step and an issue`,
+            );
+          }
+
+          // Step must exist
+          if (hasStep && !stepIds.has(option.next_step_id)) {
+            throw new Error(
+              `Step ${step.step_order}: Option "${option.label}" points to a step that does not exist`,
+            );
+          }
         }
       }
     }
+    validateReachability(steps);
   }
 
   async function handleImageUpload(stepId, file, publicId) {
@@ -520,6 +639,7 @@ function FlowEditor() {
           onClose={() => setSelectedStepId(null)}
           handleCreateNextStep={handleCreateNextStep}
           issue_id={id}
+          handleAddOption={handleAddOption}
         />
       )}
     </div>
