@@ -254,22 +254,23 @@ function Troubleshooter() {
           </div>
 
           <div className="w-28 ">
-            {currentStep.is_question ? (
-              currentStep.options.map((option) => (
-                <div key={option.id}>
-                  <Button onClick={() => nextStepByOption(option.next_step_id)}>
-                    {option.label}
-                  </Button>{" "}
-                </div>
-              ))
-            ) : !currentStep.is_end ? (
+            {!currentStep.is_question && !currentStep.is_end && (
               <Button onClick={handleNextStep} text="md">
                 Next
               </Button>
-            ) : (
-              <div></div>
             )}
           </div>
+        </div>
+        <div className="flex gap-3">
+          {currentStep.is_question &&
+            currentStep.options.map((option) => (
+              <Button color="option"
+                key={option.id}
+                onClick={() => nextStepByOption(option.next_step_id)}
+              >
+                {option.label}
+              </Button>
+            ))}
         </div>
 
         <img

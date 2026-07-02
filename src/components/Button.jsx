@@ -10,6 +10,7 @@ function Button({
     sky: "bg-sky-600 hover:bg-sky-700",
     primary: "bg-neutral-600",
     secondary: "bg-neutral-800  ",
+    option: "bg-neutral-700 hover:bg-neutral-800 border border-neutral-500",
 
     red: "bg-red-600 hover:bg-red-700",
     orange: "bg-orange-500 hover:bg-orange-600",
