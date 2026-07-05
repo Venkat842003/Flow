@@ -8,10 +8,12 @@ import getSteps from "../hooks/getSteps";
 import { Network, Trash } from "lucide-react";
 import { SlOptionsVertical } from "react-icons/sl";
 import deleteIssue from "../api/deleteIssues";
+import LoadingOverlay from "../components/LoadingOverlay";
 
 function Issues() {
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [steps, setSteps] = useState([]);
   const [optionsOpen, setOptionsOpen] = useState(null);
 
@@ -47,7 +49,7 @@ function Issues() {
       "Are you sure you want to delete this issue, This will delete all the steps associated with this step",
     );
     if (!confirmed) return;
-    setLoading(true);
+    setDeleteLoading(true);
 
     try {
       await deleteIssue(id);
@@ -58,7 +60,7 @@ function Issues() {
       console.error(err);
       alert("Failed to delete issue");
     } finally {
-      setLoading(false);
+      setDeleteLoading(false);
     }
   }
 
@@ -84,7 +86,7 @@ function Issues() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Issue / Guide list</h1>
+        <h1 className="text-3xl font-bold">Issue/Guide list</h1>
       </div>
       <div className="flex flex-col  border border-neutral-600 min-h-screen rounded-sm ">
         {filteredIssues.map((issue, index) => (
@@ -136,6 +138,7 @@ function Issues() {
           </div>
         ))}
       </div>
+      {deleteLoading && <LoadingOverlay>Deleting...</LoadingOverlay>}
     </div>
   );
 }

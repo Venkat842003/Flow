@@ -12,6 +12,7 @@ import Loading from "../components/Loading";
 import saveSteps from "../api/savesSteps";
 import deleteStep from "../api/deleteStep";
 import { apiFetch } from "../api/api";
+import LoadingOverlay from "../components/LoadingOverlay";
 
 const NODE_WIDTH = 220;
 const NODE_HEIGHT = 90;
@@ -642,6 +643,7 @@ function FlowEditor() {
           handleAddOption={handleAddOption}
         />
       )}
+      {saveLoading && <LoadingOverlay />}
     </div>
   );
 }

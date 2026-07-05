@@ -15,7 +15,7 @@ function StepDropdown({ step, steps, handleNextStepChange, type, value }) {
           .filter((s) => s.id !== step.id)
           .map((s) => (
             <option key={s.id} value={s.id}>
-              Step {s.order} - {s.instruction || "Untitled Step"}
+              Step {s.step_order} - {s.instruction || "Untitled Step"}
             </option>
           ))}
       </select>

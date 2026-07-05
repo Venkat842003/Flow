@@ -264,7 +264,8 @@ function Troubleshooter() {
         <div className="flex gap-3">
           {currentStep.is_question &&
             currentStep.options.map((option) => (
-              <Button color="option"
+              <Button
+                color="option"
                 key={option.id}
                 onClick={() => nextStepByOption(option.next_step_id)}
               >
@@ -273,11 +274,13 @@ function Troubleshooter() {
             ))}
         </div>
 
-        <img
-          className="w-full max-w-7xl object-contain h-auto"
-          src={currentStep.image_url}
-          alt="Step Illustration"
-        />
+        {currentStep.image_url && (
+          <img
+            className="w-full max-w-7xl object-contain h-auto"
+            src={currentStep.image_url}
+            alt="Step Illustration"
+          />
+        )}
       </div>
     </div>
   );

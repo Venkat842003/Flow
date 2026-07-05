@@ -2,6 +2,7 @@ import { useState } from "react";
 import Button from "../components/Button";
 import { useNavigate } from "react-router-dom";
 import createIssue from "../api/createIssue";
+import LoadingOverlay from "../components/LoadingOverlay";
 
 function CreateIssue() {
   const [newIssue, setNewIssue] = useState("");
@@ -39,6 +40,7 @@ function CreateIssue() {
           <Button>{loading ? "Creating issue..." : "Create Issue"}</Button>
         </div>
       </form>
+      {loading && <LoadingOverlay>Creating Issue...</LoadingOverlay>}
     </div>
   );
 }

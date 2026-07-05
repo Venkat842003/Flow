@@ -17,6 +17,7 @@ function StepEditModal({
   onClose,
   handleAddOption,
 }) {
+
   async function handleNextStepChange(currentStep, value, option = null) {
     if (value === "create") {
       await handleCreateNextStep(currentStep, option);
